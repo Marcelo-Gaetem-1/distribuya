@@ -30,9 +30,6 @@ Desktop.ini
 .idea/
 *.iml
 
-# Salesforce scratch org config (local only)
-config/project-scratch-def.json
-
 # Package manager lock files (keep package-lock.json if using npm scripts)
 # yarn.lock
 
