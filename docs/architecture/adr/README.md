@@ -21,5 +21,8 @@ No ADRs written yet. Candidates have been identified during Phase 1 modeling and
 | 7 | Volume discounts / Price Tiers | Scene 3 | Maybe | Yes |
 | 8 | Account Contact Relationships | Block B | No (minor decision, goes in ERD) | No |
 | 9 | Credit limit with history (Credit_History__c) | Block B | Yes | Yes |
+| 10 | Pricing — Pricebook segmentation strategy | Phase 1, Block B | Yes | Yes |
+| 11 | Pricing — Customer-level override model (Customer_Price__c) | Phase 1, Block B | Yes | Yes |
+| 12 | Pricing — Volume-based tiers model (Price_Tier__c) | Phase 1, Block B | Yes | Yes |
 
 **Estimated total formal ADRs**: 6–7.

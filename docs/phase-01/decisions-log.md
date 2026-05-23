@@ -70,6 +70,42 @@ Decisión justificada aplicando el framework picklist vs Custom Object (ver [doc
 | Objeto de listas de precios | `Pricebook2` standard |
 | `PricebookEntry` | Standard (conecta Product2 con precio) |
 
+### Advanced pricing (closed)
+
+Three interconnected sub-decisions covering pricing strategy.
+
+*Sub-decision 1 — Pricebook structure*
+
+| Decision | Result |
+|---|---|
+| Pricebook strategy | 3 × `Pricebook2` (one per segment): "Retailer", "Restaurant", "Small Business" |
+| Order-to-Pricebook assignment | `Order.Pricebook2Id` set based on `Account.Segment__c` |
+| Default for new customers without segment yet | "Small Business" Pricebook |
+
+Rationale: native standard pattern for segment-based pricing, auditable for catalog teams, no custom logic required. Reinforces *Trusted* and *Composable* pillars of WAF.
+
+*Sub-decision 2 — Customer-level price override*
+
+| Decision | Result |
+|---|---|
+| Override model | Custom Object `Customer_Price__c` |
+| Initial fields | `Account__c` (lookup), `Product2__c` (lookup), `Override_Price__c` (currency), `Effective_Date__c`, `End_Date__c`, `Negotiated_By__c` (User lookup), `Notes__c` |
+| Application logic | Apex `PricingService` (Phase 2): checks active customer override first, falls back to segment Pricebook entry |
+| v2 roadmap | Migration path to Salesforce Revenue Cloud Advanced documented in README |
+
+Rationale: validated against picklist-vs-CustomObject framework (4 of 5 questions favor Custom Object). Pricebook-per-customer alternative does not scale; Salesforce CPQ is in End-of-Sale phase as of 2024-2025, so not future-proof for v2 — Revenue Cloud Advanced is the strategic successor.
+
+*Sub-decision 3 — Volume-based pricing tiers*
+
+| Decision | Result |
+|---|---|
+| Tier model | Custom Object `Price_Tier__c` |
+| Initial fields | Link to `PricebookEntry__c` (or `Product2__c`, TBD in fine modeling), `Min_Quantity__c`, `Max_Quantity__c` (nullable for last tier), `Tier_Price__c`, `Effective_Date__c`, `End_Date__c` |
+| Application logic | `PricingService` cascade order: customer override → applicable tier by quantity → base Pricebook entry |
+| Unified model option | Possible future evolution to single `Price_Tier__c` with optional `Account__c` field, replacing `Customer_Price__c`. Deferred (YAGNI). |
+
+Rationale: hardcoded tier fields on `PricebookEntry` do not scale beyond a fixed number of tiers; unified model with `Customer_Price__c` was evaluated but deferred to avoid premature complexity.
+
 ---
 
 ## Pending in Block B (next sessions)
