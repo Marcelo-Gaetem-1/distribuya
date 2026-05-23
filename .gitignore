@@ -1,0 +1,46 @@
+# Salesforce CLI
+.sfdx/
+.sf/
+.salesforce/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Editor — VS Code (allow settings.json for shared config)
+.vscode/*
+!.vscode/settings.json
+
+# Editor — JetBrains / IntelliJ
+.idea/
+*.iml
+
+# Salesforce scratch org config (local only)
+config/project-scratch-def.json
+
+# Package manager lock files (keep package-lock.json if using npm scripts)
+# yarn.lock
+
+# Build output
+dist/
+build/
+
+# Temp files
+*.tmp
+*.swp
+*~
