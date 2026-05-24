@@ -206,6 +206,191 @@ Rationale: Lookup over Master-Detail because reservations must outlive their `Or
 
 Rationale: Time-Triggered Paths provide near-exact expiration timing (minute-level granularity) and per-record scheduling, which is cleaner conceptually than a centralized scheduled job sweeping records. The choice signals familiarity with modern Flow capabilities (Scheduled Paths, Summer '21+). Centralized scheduled Apex was considered but rejected as primary mechanism due to coarser granularity (typically 15-minute resolution).
 
+#### Sharing model
+
+Six interconnected sub-decisions covering record visibility, role hierarchy, sharing rules, external (portal) users, and permission strategy. The sharing model is layered on top of all previously decided objects.
+
+**Internal roles inventory** (closed)
+
+Nine core roles for DistribuYa's commercial operation:
+
+| Role | Responsibility | Main touchpoints |
+|---|---|---|
+| Sales Rep | Owns assigned Accounts; creates Orders | Account (owner), Order, Customer_Price__c (read) |
+| Sales Manager | Supervises Sales Reps; Tier 2 credit approvals | Approval matrix Tier 2 |
+| Sales Director | Top commercial role; full visibility | Reporting global |
+| Credit Analyst | Reviews Tier 3 credit approvals | Credit_History__c (R/W) |
+| Credit Manager | Supervises Credit Analysts; escalations | Credit_History__c, escalations |
+| Operations / Fulfillment | Manages Fulfillment_Status lifecycle | Order, Stock_Reservation__c |
+| Catalog Admin | Maintains catalog and pricing | Product2, Pricebooks, Customer_Price__c |
+| Finance | Handles Payment_Status and invoicing | Order |
+| System Admin | Full access; user/config management | All |
+
+Customer Service, Marketing, and Read-Only Reporting deferred as optional extensions (can be added without restructuring).
+
+**Organization-Wide Defaults (OWD)** (closed)
+
+| Object | OWD |
+|---|---|
+| Account | Private |
+| Contact | Controlled by Parent |
+| Order | Controlled by Parent |
+| OrderItem | Controlled by Master-Detail (Order) |
+| Product2 | Public Read Only |
+| Pricebook2 | Salesforce-managed |
+| Product_Family__c | Public Read Only |
+| Product_Category__c | Public Read Only |
+| Price_Tier__c | Public Read Only |
+| Customer_Price__c | Private |
+| Credit_History__c | Private |
+| Stock_Reservation__c | Private |
+
+Rationale: OWDs set as restrictive as possible and opened with Role Hierarchy/Sharing Rules. Catalog data is universally visible (Public Read Only); customer-territorial data (Account, Order) and sensitive data (Customer_Price__c, Credit_History__c) start Private and open selectively. Reinforces *Trusted* pillar of WAF.
+
+**Derived decision — branch ownership for multi-sucursal accounts**
+
+| Decision | Result |
+|---|---|
+| Owner of Branch Accounts | Same Sales Rep as the Parent Customer |
+| Assignment mechanism | Apex Trigger or Record-Triggered Flow on Branch Account creation; reads owner from Parent_Customer and assigns to Branch |
+
+This enables the Sales Rep owning Don Mario SRL to automatically see all 4 branches via ownership (rather than via Sharing Rules or Apex Sharing).
+
+**Role hierarchy** (closed)
+
+| Decision | Result |
+|---|---|
+| Structure type | Geographic (territory-based) |
+| Hierarchy depth | 4 levels: CEO → Director → Manager → Rep |
+| Total roles | 14 (plus System Administrator outside hierarchy) |
+| "Grant Access Using Hierarchies" | Enabled (default) for all objects |
+
+Hierarchy tree:
+
+```
+CEO / General Director (root)
+│
+├── Sales Director
+│   ├── Sales Manager Norte
+│   │   ├── Sales Rep Norte 1
+│   │   └── Sales Rep Norte 2
+│   └── Sales Manager Sur
+│       ├── Sales Rep Sur 1
+│       └── Sales Rep Sur 2
+│
+├── Credit & Risk Manager
+│   ├── Credit Analyst 1
+│   └── Credit Analyst 2
+│
+├── Operations Manager
+│
+├── Catalog Admin Lead
+│
+└── Finance Manager
+```
+
+Rationale: geographic structure is realistic for B2B distributors with physical territory (delivery routes, regional pricing); 4 levels balance manageability with realistic enterprise depth.
+
+**Sharing rules** (closed)
+
+Six criteria-based Sharing Rules opening visibility to non-sales functional areas (Credit, Operations, Finance, Catalog) that sit in parallel branches of the role hierarchy.
+
+| # | Object | Criteria | Recipient (Public Group) | Access |
+|---|---|---|---|---|
+| 1 | Account | All records | Credit & Risk | Read Only |
+| 2 | Credit_History__c | All records | Credit & Risk | Read/Write |
+| 3 | Order | Credit_Status = Approved AND Fulfillment_Status NOT IN (Delivered, Cancelled) | Operations | Read/Write |
+| 4 | Order | Fulfillment_Status = Delivered AND Payment_Status != Paid | Finance | Read/Write |
+| 5 | Customer_Price__c | All records | Catalog Admin | Read/Write |
+| 6 | Stock_Reservation__c | Status = Active | Operations | Read/Write |
+
+Public Groups used (instead of direct role assignment): `Credit & Risk`, `Operations`, `Finance`, `Catalog Admin`. Members include roles + subordinates so new hires inherit access automatically. Reinforces *Easy to Change* pillar of WAF.
+
+Ownership inheritance decisions:
+
+| Object | Owner |
+|---|---|
+| Credit_History__c | Same as related Account (via Apex Trigger or Flow on insert) |
+| Customer_Price__c | Sales Rep who negotiated the override (`Negotiated_By__c` field) |
+| Stock_Reservation__c | Inherited from related Order via OrderItem |
+
+**External users (Experience Cloud portal)** (closed)
+
+| Decision | Result |
+|---|---|
+| License type | Customer Community Plus |
+| Sharing mechanism | Sharing Sets with "All related Accounts via ACR" |
+| External Role Hierarchy | Not used (covered by ACR + Sharing Sets) |
+| Base external profile | DistribuYa Customer Portal User |
+| External permission tiers | 3: Standard / Branch Manager / Account Owner |
+
+Portal user visibility:
+
+| Object | Portal Account Owner (Don Mario) | Portal Branch Manager (María) | Portal Standard User |
+|---|---|---|---|
+| Account (own + related via ACR) | Read | Read (only own branch) | Read (only own branch) |
+| Contact (own + same account) | Read | Read | Read |
+| Order | R/Create | R/Create | R/Create |
+| OrderItem | R/Create | R/Create | R/Create |
+| Product2, Product_Family__c, Product_Category__c | Read | Read | Read |
+| Price_Tier__c | Read | Read | Read |
+| Pricebook2 | Read (own segment) | Read | Read |
+| Customer_Price__c | Read (own account's overrides) | Read | Read |
+| Credit_History__c | **No access** | **No access** | **No access** |
+| Stock_Reservation__c | **No access** | **No access** | **No access** |
+
+Rationale: Customer Community Plus is required for multi-branch sharing complexity; ACR-based Sharing Sets natively cover the "Don Mario sees all 4 branches, María sees only Palermo" scenario without External Role Hierarchy. Internal-only data (credit, stock reservations, orchestration runs) hidden from all portal users. Implies licensing cost in production — noted in ADR consequences.
+
+**Permission Sets vs Profiles strategy** (closed)
+
+| Decision | Result |
+|---|---|
+| Model | Permission Set-led (minimal Profile + atomic Permission Sets + Permission Set Groups) |
+| Profile base (internal) | `DistribuYa Internal User` (login hours, IP, locale only) |
+| Profile base (external) | `DistribuYa Customer Portal User` (based on Customer Community Plus) |
+| Atomic Permission Sets (internal) | 11 |
+| Permission Set Groups | 8 (one per role) |
+| Atomic Permission Sets (external) | 3 |
+
+Atomic Permission Sets (internal):
+
+| Permission Set | Key permissions |
+|---|---|
+| `PS - Account Management` | CRUD on Account, Contact; Read Customer_Price__c (own owner) |
+| `PS - Order Creation` | Create/Edit Order, OrderItem; Read Pricebook2, Product2 |
+| `PS - Order Approval Tier 1` | Approve credit orchestration steps at commercial level |
+| `PS - Order Approval Tier 2` | Tier 2 approvals (manager level) |
+| `PS - Credit Analyst` | R/W Credit_History__c; Read All on Account credit fields; Tier 3 approvals |
+| `PS - Credit Manager` | Above + Edit Credit_Limit__c; escalation approvals |
+| `PS - Fulfillment Operations` | Edit Order.Fulfillment_Status; R/W Stock_Reservation__c |
+| `PS - Payment Operations` | Edit Order.Payment_Status |
+| `PS - Catalog Management` | CRUD on Product2, Product_Family__c, Product_Category__c |
+| `PS - Pricing Management` | CRUD on Customer_Price__c, Price_Tier__c; Edit Pricebook2 |
+| `PS - Reporting Read All` | View All Data (read-only for Director and above) |
+
+Permission Set Groups (per role):
+
+| PSG | Composition | Assigned to |
+|---|---|---|
+| `PSG - Sales Rep` | PS Account Management + PS Order Creation + PS Order Approval Tier 1 | Sales Rep roles |
+| `PSG - Sales Manager` | PSG Sales Rep + PS Order Approval Tier 2 | Sales Manager roles |
+| `PSG - Sales Director` | PSG Sales Manager + PS Reporting Read All | Sales Director |
+| `PSG - Credit Analyst` | PS Credit Analyst | Credit Analyst roles |
+| `PSG - Credit Manager` | PSG Credit Analyst + PS Credit Manager | Credit Manager |
+| `PSG - Operations` | PS Fulfillment Operations + PS Order Creation (read only) | Operations Manager |
+| `PSG - Catalog Admin` | PS Catalog Management + PS Pricing Management | Catalog Admin Lead |
+| `PSG - Finance` | PS Payment Operations + PS Reporting Read All | Finance Manager |
+
+External Permission Sets:
+
+| Permission Set | Purpose |
+|---|---|
+| `PS - Portal Standard` | Read catalog, Create Order, Read own Account/Contact |
+| `PS - Portal Branch Manager` | Above + Read all Orders of own branch |
+| `PS - Portal Account Owner` | Above + Read all related Accounts via ACR (Don Mario level) |
+
+Rationale: Permission Set-led model is Salesforce's official recommendation since 2023. Although Salesforce reversed the Spring '26 enforced EOL of profile permissions in 2024, all product investment remains in Permission Sets and Permission Set Groups. Atomic Permission Sets are composable — a one-off custom role is built by combining existing PSs rather than creating bespoke profiles. Reinforces *Easy to Change* and *Composable* pillars of WAF.
+
 ---
 
 ## Pending in Block B (next sessions)

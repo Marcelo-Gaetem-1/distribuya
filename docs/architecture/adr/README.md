@@ -31,5 +31,10 @@ No ADRs written yet. Candidates have been identified during Phase 1 modeling and
 | 17 | Stock — Hybrid model (ERP truth + SF reservation layer) | Phase 1, Block B | Yes | Yes |
 | 18 | Stock — Reservation custom object with Lookup | Phase 1, Block B | Yes | Yes |
 | 19 | Stock — Time-Triggered Path for reservation expiration | Phase 1, Block B | Yes | Yes |
+| 20 | Sharing — OWD model and ownership inheritance for multi-sucursal | Phase 1, Block B | Yes | Yes |
+| 21 | Sharing — Role Hierarchy structure (geographic, 4 levels) | Phase 1, Block B | Yes | Yes |
+| 22 | Sharing — Sharing Rules strategy and Public Groups | Phase 1, Block B | Yes | Yes |
+| 23 | Sharing — External users sharing model with ACR-based Sharing Sets | Phase 1, Block B | Yes | Yes |
+| 24 | Sharing — Permission Set-led security model | Phase 1, Block B | Yes | Yes |
 
 **Estimated total formal ADRs**: 6–7.
