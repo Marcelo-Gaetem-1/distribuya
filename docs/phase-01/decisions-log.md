@@ -106,6 +106,106 @@ Rationale: validated against picklist-vs-CustomObject framework (4 of 5 question
 
 Rationale: hardcoded tier fields on `PricebookEntry` do not scale beyond a fixed number of tiers; unified model with `Customer_Price__c` was evaluated but deferred to avoid premature complexity.
 
+#### Order domain
+
+Eight sub-decisions covering order management, approvals, and stock reservation. The richest functional area of Phase 1, touching most discovery decisions.
+
+**Order header** (closed)
+
+| Decision | Result |
+|---|---|
+| Standard vs Custom | Standard (`Order`) |
+| Salesforce Order Management | Not activated (OMS is retail/B2C-oriented, doesn't fit B2B wholesale) |
+| Record Types in Order | None — instead, picklist `Order_Type__c` with values `Standard` / `Sample` / `Return` / `Internal` |
+
+Rationale: `Order` semantics match perfectly; OMS adds licensing and complexity without proportional value for B2B wholesale; order subtypes are homogeneous enough not to warrant RTs.
+
+**OrderItem** (closed)
+
+| Decision | Result |
+|---|---|
+| Standard vs Custom | Standard (`OrderItem`) |
+| Relation to product variants | Native (`OrderItem.Product2Id` points to variant Product2) |
+| Applied price traceability | Custom fields: `Applied_Price_Source__c` (picklist: `Base_Price` / `Customer_Override` / `Volume_Tier`), `Price_Modifier_Id__c` (text, references `Customer_Price__c` or `Price_Tier__c`), `Base_Price__c` (currency), `Discount_Amount__c` (currency, calculated) |
+| Record Types | None |
+
+Rationale: Standard `OrderItem` covers the data model; custom traceability fields enable audit trail and reporting that reinforces *Trusted* pillar of WAF — critical for B2B disputes and credit decisions.
+
+**Lifecycle states** (closed)
+
+| Decision | Result |
+|---|---|
+| State model | Multi-dimensional — three orthogonal status fields |
+| `Status` (standard) | Untouched; preserves native Order behavior (Draft / Activated) |
+| `Credit_Status__c` (picklist) | `Not_Required` / `Pending` / `Approved` / `Rejected` |
+| `Fulfillment_Status__c` (picklist) | `Not_Started` / `In_Picking` / `Shipped` / `Delivered` / `Cancelled` |
+| `Payment_Status__c` (picklist) | `Not_Paid` / `Partially_Paid` / `Paid` |
+| `Order_Stage__c` (formula) | Derived from the three status fields; user-friendly representation for UI |
+
+Rationale: order lifecycle in B2B is genuinely multi-dimensional (an order can be `Delivered` and `Not_Paid` simultaneously under Net 30 terms). Linear status models force false sequentiality. Orthogonal fields enable cleaner reporting (e.g., "all delivered unpaid orders") and natural ownership separation by domain (credit team, fulfillment, finance). Reinforces *Composable* pillar of WAF.
+
+**Approval orchestration** (closed)
+
+| Decision | Result |
+|---|---|
+| Mechanism | **Flow Orchestration** (standard Flow type as of Spring '26, no licensing barrier) |
+| Stages | Pre-Approval Analysis (auto) → Approval Decision (interactive) → Apply Decision (auto) |
+| Exposure and tier calculation | Background Step invokes Flow that reads `Credit_Approval_Tier__mdt` |
+| Dynamic approver assignment | Orchestration variable set in background step, used as assignee in interactive step |
+| Audit trail | Orchestration Run history (native) |
+| Order state during flow | `Credit_Status__c` updated by background steps as stages progress |
+
+Rationale: Flow Orchestration is designed specifically for multi-step, multi-user processes — exactly the credit approval pattern. Salesforce Spring '26 made it a standard Flow type with no usage caps, removing the previous licensing barrier. Approval Process classic was considered but rejected: its native dynamic assignment is limited, and Orchestration provides richer audit and modern tooling. The choice signals architectural awareness of post-2026 platform capabilities.
+
+**Approval matrix configuration** (closed)
+
+| Decision | Result |
+|---|---|
+| Storage of approval tiers | Custom Metadata Type `Credit_Approval_Tier__mdt` |
+| Initial tiers | Tier 1: 0-100% (Sales Rep); Tier 2: 100-150% (Manager); Tier 3: 150%+ (Credit Team) |
+| Tier attributes | `Min_Ratio__c`, `Max_Ratio__c` (nullable for top tier), `Approver_Role__c` |
+
+Rationale: Custom Metadata is the appropriate Salesforce primitive for business configuration that changes infrequently, is admin-maintainable, and needs to be versioned with metadata (not data). Hardcoding in Apex or Flow would block admin changes; Custom Object would mix configuration with transactional data.
+
+**Stock model** (closed)
+
+| Decision | Result |
+|---|---|
+| Source of truth for physical stock | ERP (external system) |
+| Salesforce stock representation | `Product2.Available_Stock__c` (number, populated by periodic sync from ERP) |
+| Sync metadata fields | `Product2.Stock_Last_Sync__c` (datetime) |
+| Cross-reference identifiers | `Product2.ERP_Product_ID__c` (text, external ID, unique) |
+| Reservation layer | Salesforce-only (independent of ERP), custom object `Stock_Reservation__c` |
+| Available for new orders | Computed at runtime: `Available_Stock__c - SUM(active reservations)` |
+| Order confirmation to ERP | Outbound integration in Phase 4 (post-approval, post-payment as applicable) |
+
+Rationale: hybrid model with clear ownership — ERP owns physical stock, Salesforce owns commercial transactions and temporary reservations. Avoids ERP latency on every reservation check while maintaining a single source of truth for physical inventory. Reinforces *Resilient* (Salesforce works during ERP outages for new orders) and *Composable* (clear domain boundaries) pillars of WAF.
+
+**Stock reservation model** (closed)
+
+| Decision | Result |
+|---|---|
+| Object | Custom Object `Stock_Reservation__c` |
+| Granularity | One reservation per `OrderItem` |
+| Relation to `OrderItem` | **Lookup** (not Master-Detail) — preserves audit trail if `OrderItem` is deleted |
+| Status workflow | `Active` → terminal states `Consumed` / `Released` / `Expired` |
+| Atributes | `Product2__c` (lookup), `OrderItem__c` (lookup), `Quantity__c`, `Status__c`, `Expiry_Timestamp__c`, `Reservation_Reason__c`, `Released_By__c`, `Released_Reason__c` |
+| Available stock calculation | Deferred to Phase 2 (Apex Service Layer): runtime aggregate vs maintained rollup decision |
+
+Rationale: Lookup over Master-Detail because reservations must outlive their `OrderItem` for auditability — consistent with `Credit_History__c` pattern. Status workflow with terminal states enables reporting on approval delays (`Expired` count), rejection rates (`Released` count), and conversion (`Consumed` count). Orphan handling on `OrderItem` deletion is solved by a simple Record-Triggered Flow.
+
+**Reservation timeout** (closed)
+
+| Decision | Result |
+|---|---|
+| Mechanism | **Time-Triggered Path** in Record-Triggered Flow on `Stock_Reservation__c` |
+| Trigger | After Create — each reservation schedules its own expiration |
+| Offset basis | Field `Expiry_Timestamp__c` |
+| Action when timestamp reached | Verify `Status__c = 'Active'`; if true, set `Status__c = 'Expired'` |
+| Enterprise safety net | Scheduled Apex as a sweep backup — deferred (YAGNI) but architecturally noted |
+
+Rationale: Time-Triggered Paths provide near-exact expiration timing (minute-level granularity) and per-record scheduling, which is cleaner conceptually than a centralized scheduled job sweeping records. The choice signals familiarity with modern Flow capabilities (Scheduled Paths, Summer '21+). Centralized scheduled Apex was considered but rejected as primary mechanism due to coarser granularity (typically 15-minute resolution).
+
 ---
 
 ## Pending in Block B (next sessions)

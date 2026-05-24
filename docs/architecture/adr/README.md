@@ -24,5 +24,12 @@ No ADRs written yet. Candidates have been identified during Phase 1 modeling and
 | 10 | Pricing — Pricebook segmentation strategy | Phase 1, Block B | Yes | Yes |
 | 11 | Pricing — Customer-level override model (Customer_Price__c) | Phase 1, Block B | Yes | Yes |
 | 12 | Pricing — Volume-based tiers model (Price_Tier__c) | Phase 1, Block B | Yes | Yes |
+| 13 | OrderItem — applied price traceability | Phase 1, Block B | No | No (documented in ERD) |
+| 14 | Order — multi-dimensional status model | Phase 1, Block B | Yes | Yes |
+| 15 | Order — Flow Orchestration for credit approval | Phase 1, Block B | Yes | Yes |
+| 16 | Order — Credit approval matrix via Custom Metadata | Phase 1, Block B | Yes | Yes |
+| 17 | Stock — Hybrid model (ERP truth + SF reservation layer) | Phase 1, Block B | Yes | Yes |
+| 18 | Stock — Reservation custom object with Lookup | Phase 1, Block B | Yes | Yes |
+| 19 | Stock — Time-Triggered Path for reservation expiration | Phase 1, Block B | Yes | Yes |
 
 **Estimated total formal ADRs**: 6–7.
