@@ -32,10 +32,28 @@ objects/
 
 Traceability: each metadata file references the ADR that justifies it (ADR-0001 for the Account hierarchy/record types, ADR-0003 for credit history).
 
+### ✅ Product domain
+
+```
+objects/
+├── Product2/                        (standard object — extended)
+│   └── fields/
+│       ├── Product_Family__c        Lookup → Product_Family__c (required, Restrict delete)
+│       ├── Available_Stock__c       Number (synced from ERP)
+│       ├── Stock_Last_Sync__c       DateTime
+│       └── ERP_Product_ID__c        Text, External Id, Unique
+├── Product_Family__c/               (custom object — OWD Public Read Only)
+│   └── fields/ Brand__c, Long_Description__c, Image_URL__c,
+│              Product_Manager__c (Lookup → User), Product_Category__c (Lookup)
+└── Product_Category__c/             (custom object — OWD Public Read Only)
+    └── fields/ Display_Order__c, Icon_URL__c, Active__c, Description__c
+```
+
+> **Materialization note**: the decisions-log originally specified Product2 → Product_Family__c as **Master-Detail**. This is **impossible on the platform** — a standard object cannot be the detail side of a master-detail ([Salesforce Help](https://help.salesforce.com/s/articleView?id=sf.relationships_considerations.htm&type=5)). Implemented as a **required Lookup with Restrict delete** instead. See decisions-log "Materialization finding".
+
 ### Pending (next domains)
 
-- Product domain (`Product2`, `Product_Family__c`, `Product_Category__c`, Pricebooks)
-- Pricing (`Customer_Price__c`, `Price_Tier__c`)
+- Pricing (`Customer_Price__c`, `Price_Tier__c`) — note: the 3 segment Pricebooks are *records/data*, not metadata, created separately.
 - Order domain (`Order`, `OrderItem`, `Stock_Reservation__c`, `Credit_Approval_Tier__mdt`)
 - Sharing (record types assignment, sharing rules, permission sets)
 
