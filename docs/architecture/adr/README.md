@@ -22,6 +22,12 @@ The first wave of ADRs has been authored during Phase 1 Block B Session 3. The 2
 
 > Candidates **#13** (OrderItem applied-price traceability) and the lookup detail of **#8** (Account Contact Relationships) are documented in the [data model ERD](../diagrams/data-model-erd.md) rather than as standalone ADRs, per their "No formal ADR" assessment below.
 
+### Planned ADR
+
+| ADR | Title | When |
+|---|---|---|
+| 0008 | AI Layer org strategy (dedicated Data Cloud DE vs provisioning on core org) | Phase 5 kickoff — interim decision recorded in [org-strategy.md](../org-strategy.md) |
+
 ## ADR Candidates
 
 | # | Candidate | Origin | Goes to Subchat 00? | Likely formal ADR? |
