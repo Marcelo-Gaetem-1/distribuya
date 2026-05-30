@@ -47,11 +47,13 @@ Justificación del historial: el background en banca permite mostrar auditoría 
 |---|---|
 | Objeto vendible | `Product2` standard (sin cambios) |
 | Agrupación de variantes | Custom Object `Product_Family__c` |
-| Relación entre Family y Product2 | Master-Detail (la family es el padre, las variantes son hijas) |
+| Relación entre Family y Product2 | ~~Master-Detail~~ → **Lookup, required, Restrict delete** (la family es el padre, las variantes son hijas) — ver nota de materialización |
 | Pricing | En cada `Product2` (por variante), no en la family |
 | Atributos en Family | Marca, imagen, descripción larga, manager de producto, etc. |
 
 Justificación del patrón Family + Variants: Salesforce no tiene variantes nativas en Product2. La opción "padre Product2 + variantes en Custom Object" reimplementa Pricebook/Order/OrderItem y viola la regla 80/20. La opción "campo picklist agrupador" no soporta atributos propios ni crecimiento dinámico del catálogo. El patrón elegido respeta a Product2 como entidad vendible y modela la noción de "family" donde único pertenece.
+
+> **Materialization finding (2026-05-30, Block D)**: the relationship was originally documented as **Master-Detail with Product2 as the detail (child)**. This is **not buildable on the platform**: a standard object (Product2) cannot be on the detail side of a master-detail relationship — only the master side. ([Salesforce Help — Tips and Considerations for Relationships](https://help.salesforce.com/s/articleView?id=sf.relationships_considerations.htm&type=5)). **Resolution**: `Product2.Product_Family__c` is a **Lookup** that is **required** with **Restrict delete** (a family cannot be deleted while it has variants). This preserves the "a variant must belong to a family" intent and referential integrity, while *avoiding* cascade-delete (which we do not want — products carry order history) and without needing roll-up summaries (not required in Phase 1). Any future need for roll-ups on the family is handled via Apex/Flow, not master-detail.
 
 ### Categories
 

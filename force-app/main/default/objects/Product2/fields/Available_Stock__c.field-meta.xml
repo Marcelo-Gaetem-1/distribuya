@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Available_Stock__c</fullName>
+    <label>Available Stock</label>
+    <type>Number</type>
+    <precision>12</precision>
+    <scale>0</scale>
+    <required>false</required>
+    <description>Physical stock synced periodically from the ERP (ERP is the source of truth). Available-to-promise = Available_Stock__c - SUM(active reservations), computed at runtime in Phase 2. See ADR-0006.</description>
+    <inlineHelpText>Physical stock from ERP (synced). Not the available-to-promise figure.</inlineHelpText>
+</CustomField>

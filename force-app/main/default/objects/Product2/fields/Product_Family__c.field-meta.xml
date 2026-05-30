@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Product_Family__c</fullName>
+    <label>Product Family</label>
+    <type>Lookup</type>
+    <referenceTo>Product_Family__c</referenceTo>
+    <relationshipLabel>Variants</relationshipLabel>
+    <relationshipName>Variants</relationshipName>
+    <required>true</required>
+    <deleteConstraint>Restrict</deleteConstraint>
+    <description>The family this sellable variant belongs to. MODELED AS LOOKUP (not Master-Detail): a standard object like Product2 cannot be the detail side of a master-detail relationship. Required + Restrict delete preserves the "a variant must belong to a family" intent and blocks deleting a family that still has variants, without cascade-deleting products that carry order history. See decisions-log Product domain materialization finding.</description>
+</CustomField>

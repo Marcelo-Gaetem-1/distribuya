@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Product_Category__c</fullName>
+    <label>Product Category</label>
+    <type>Lookup</type>
+    <referenceTo>Product_Category__c</referenceTo>
+    <relationshipLabel>Product Families</relationshipLabel>
+    <relationshipName>Product_Families</relationshipName>
+    <required>false</required>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>Optional category for this family. Lookup (not Master-Detail) because a family can exist without an assigned category. See decisions-log Product domain / Categories.</description>
+</CustomField>

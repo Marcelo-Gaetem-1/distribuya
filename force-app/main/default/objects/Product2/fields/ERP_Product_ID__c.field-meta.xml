@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>ERP_Product_ID__c</fullName>
+    <label>ERP Product ID</label>
+    <type>Text</type>
+    <length>64</length>
+    <externalId>true</externalId>
+    <unique>true</unique>
+    <required>false</required>
+    <description>Cross-reference identifier of this product in the ERP. External Id + unique to support idempotent inbound integration (upsert). See ADR-0006.</description>
+</CustomField>

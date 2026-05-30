@@ -27,7 +27,7 @@ erDiagram
 
     OrderItem }o--|| Product2 : "Product2Id (variant)"
 
-    Product2 }o--|| Product_Family__c : "MD - variant of family"
+    Product2 }o--|| Product_Family__c : "LK required, Restrict (variant of family)"
     Product_Family__c }o--o| Product_Category__c : "LK - optional category"
 
     Pricebook2 ||--o{ PricebookEntry : "contains"
@@ -60,7 +60,7 @@ erDiagram
         Currency New_Limit__c
     }
     Product2 {
-        Lookup Product_Family__c "MD parent"
+        Lookup Product_Family__c "required, Restrict delete"
         Number Available_Stock__c "synced from ERP"
         DateTime Stock_Last_Sync__c
         Text ERP_Product_ID__c "External Id, unique"
