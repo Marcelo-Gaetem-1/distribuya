@@ -6,7 +6,7 @@
     <referenceTo>Account</referenceTo>
     <relationshipLabel>Credit History</relationshipLabel>
     <relationshipName>Credit_History</relationshipName>
-    <required>true</required>
+    <required>false</required>
     <deleteConstraint>SetNull</deleteConstraint>
-    <description>The customer Account this credit change applies to. Lookup (not Master-Detail) so history survives if the Account is deleted. See ADR-0003.</description>
+    <description>The customer Account this credit change applies to. Lookup (not Master-Detail) with SetNull so history survives if the Account is deleted (the audit row remains with Account__c blank). Field is not required at the metadata level precisely to allow SetNull; population is enforced by automation, not by the schema. See ADR-0003.</description>
 </CustomField>
