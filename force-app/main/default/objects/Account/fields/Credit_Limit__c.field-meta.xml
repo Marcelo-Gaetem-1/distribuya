@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Credit_Limit__c</fullName>
+    <label>Credit Limit</label>
+    <type>Currency</type>
+    <precision>16</precision>
+    <scale>2</scale>
+    <required>false</required>
+    <description>Maximum credit extended to this customer. Meaningful only on Single_Customer and Parent_Customer record types (branches do not carry credit). See ADR-0001 and ADR-0003.</description>
+    <inlineHelpText>Maximum credit available to this customer (parent/single only).</inlineHelpText>
+</CustomField>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RecordType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Branch_Customer</fullName>
+    <label>Branch Customer</label>
+    <active>true</active>
+    <description>Branch of a parent customer: receives orders but does NOT manage credit. Linked to its parent via ParentId. See ADR-0001.</description>
+</RecordType>

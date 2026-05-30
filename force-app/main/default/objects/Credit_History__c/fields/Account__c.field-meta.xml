@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Account__c</fullName>
+    <label>Account</label>
+    <type>Lookup</type>
+    <referenceTo>Account</referenceTo>
+    <relationshipLabel>Credit History</relationshipLabel>
+    <relationshipName>Credit_History</relationshipName>
+    <required>true</required>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The customer Account this credit change applies to. Lookup (not Master-Detail) so history survives if the Account is deleted. See ADR-0003.</description>
+</CustomField>

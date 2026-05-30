@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RecordType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Single_Customer</fullName>
+    <label>Single Customer</label>
+    <active>true</active>
+    <description>Single-location customer: places orders AND manages its own credit. See ADR-0001.</description>
+</RecordType>

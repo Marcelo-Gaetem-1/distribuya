@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Onboarding_Stage__c</fullName>
+    <label>Onboarding Stage</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <description>Onboarding progress. Hybrid model: Sales Rep initiates, onboarding team validates and activates (discovery Scene 2). NOTE: value set proposed during materialization - confirm with business.</description>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Initiated</fullName>
+                <default>true</default>
+                <label>Initiated</label>
+            </value>
+            <value>
+                <fullName>In Validation</fullName>
+                <default>false</default>
+                <label>In Validation</label>
+            </value>
+            <value>
+                <fullName>Active</fullName>
+                <default>false</default>
+                <label>Active</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RecordType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Parent_Customer</fullName>
+    <label>Parent Customer</label>
+    <active>true</active>
+    <description>Legal parent entity: holds credit limit, exposure and billing. Does NOT receive orders directly. See ADR-0001.</description>
+</RecordType>

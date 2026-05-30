@@ -1,3 +1,71 @@
 # Salesforce Metadata
 
-This directory will contain Salesforce metadata in DX format (objects, fields, layouts, flows, classes, etc.). It is currently empty by design — metadata is generated during Phase 1 Block D (materialization) and onwards.
+This directory contains Salesforce metadata in DX (source) format. Block D (materialization) is **in progress** — translating the Phase 1 data model into deployable metadata, domain by domain.
+
+## What's materialized so far
+
+### ✅ Customer domain
+
+```
+objects/
+├── Account/                         (standard object — extended)
+│   ├── fields/
+│   │   ├── Credit_Limit__c          Currency
+│   │   ├── Credit_Used__c           Currency (maintained by automation, Phase 2)
+│   │   ├── Payment_Terms__c         Picklist: COD / Net 15 / Net 30 / Net 60
+│   │   ├── Segment__c               Picklist: Retailer / Restaurant / Small Business
+│   │   ├── Customer_Status__c       Picklist: Active / Inactive / Suspended
+│   │   └── Onboarding_Stage__c      Picklist: Initiated / In Validation / Active
+│   └── recordTypes/
+│       ├── Single_Customer
+│       ├── Parent_Customer
+│       └── Branch_Customer
+└── Credit_History__c/               (custom object — OWD Private)
+    ├── Credit_History__c.object-meta.xml
+    └── fields/
+        ├── Account__c               Lookup → Account (SetNull on delete)
+        ├── Change_Timestamp__c      DateTime
+        ├── Reason__c                TextArea
+        ├── Previous_Limit__c        Currency
+        └── New_Limit__c             Currency
+```
+
+Traceability: each metadata file references the ADR that justifies it (ADR-0001 for the Account hierarchy/record types, ADR-0003 for credit history).
+
+### Pending (next domains)
+
+- Product domain (`Product2`, `Product_Family__c`, `Product_Category__c`, Pricebooks)
+- Pricing (`Customer_Price__c`, `Price_Tier__c`)
+- Order domain (`Order`, `OrderItem`, `Stock_Reservation__c`, `Credit_Approval_Tier__mdt`)
+- Sharing (record types assignment, sharing rules, permission sets)
+
+## Notes / org-level settings (not file metadata)
+
+- **Account Contact Relationships (ACR)** is enabled via Setup → *Account Settings → Contacts to Multiple Accounts*, an org preference rather than object metadata, so there is no file for it here. Required before the many-to-many Contact model (ADR-0001) works.
+- **Record Type visibility** must be granted via permission sets/profiles after deployment — the record type definitions deploy, but users need assignment to see them.
+
+## How to view this metadata
+
+**Right now (no org needed)** — these are plain XML files:
+- In **VS Code**: open the `force-app/main/default/objects/` tree. The Salesforce Extension Pack renders them nicely.
+- On **GitHub**: browse the same path in the repo.
+
+**Live in a Salesforce org** — once deployed (see below), go to **Setup → Object Manager → Account / Credit History** to see the fields and record types in the UI.
+
+## How to deploy (when you have an org)
+
+```bash
+# 1. Authorize an org (Developer Edition or Trailhead Playground). Opens a browser login.
+sf org login web --alias distribuya-dev --set-default
+
+# 2. (Optional) Preview what would deploy, without making changes.
+sf project deploy preview
+
+# 3. Deploy the metadata to the org.
+sf project deploy start
+
+# 4. Open the org in a browser to inspect it.
+sf org open
+```
+
+If you don't have the Salesforce CLI yet: `npm install -g @salesforce/cli` (or download from developer.salesforce.com/tools/salesforcecli).

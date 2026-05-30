@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Segment__c</fullName>
+    <label>Segment</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <description>Customer segment driving which segment Pricebook applies. See ADR-0002.</description>
+    <inlineHelpText>Determines the segment Pricebook used for this customer's orders.</inlineHelpText>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Retailer</fullName>
+                <default>false</default>
+                <label>Retailer</label>
+            </value>
+            <value>
+                <fullName>Restaurant</fullName>
+                <default>false</default>
+                <label>Restaurant</label>
+            </value>
+            <value>
+                <fullName>Small Business</fullName>
+                <default>true</default>
+                <label>Small Business</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

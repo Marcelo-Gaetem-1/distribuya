@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Credit History</label>
+    <pluralLabel>Credit History</pluralLabel>
+    <nameField>
+        <type>AutoNumber</type>
+        <label>Credit History Number</label>
+        <displayFormat>CH-{00000}</displayFormat>
+        <trackHistory>false</trackHistory>
+    </nameField>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <sharingModel>Private</sharingModel>
+    <enableActivities>false</enableActivities>
+    <enableReports>true</enableReports>
+    <enableHistory>false</enableHistory>
+    <enableSearch>true</enableSearch>
+    <description>Audit trail of credit-relevant changes (limit, payment terms) per Account, with timestamp and reason. OWD Private. See ADR-0003.</description>
+</CustomObject>
