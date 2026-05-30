@@ -20,12 +20,13 @@ DistribuYa is a fictional-but-architecturally-realistic B2B wholesale distributo
 
 ## Current Status
 
-**Phase 1 Block B — Modeling is in progress.**
+**Phase 1 Block B — Modeling is complete. Ready for Block D (materialization).**
 
 - Block A (Discovery) is closed — 3 scenes completed.
-- Block B (Modeling) is partially complete: Customer domain and Product domain modeled; Pricing advanced, Order domain, Approval matrix, Stock reservation, and Sharing model are pending.
-- Block B Session 3 will produce 5–7 formal ADRs.
-- Full status: see [docs/project-charter.md#16-no-goals](docs/project-charter.md).
+- Block B (Modeling) is closed — Customer, Product, Advanced Pricing, Order, and Sharing domains all modeled and documented.
+- 7 formal ADRs authored (consolidated from 24 candidates) — see [docs/architecture/adr/](docs/architecture/adr/).
+- Data model ERD published — see [docs/architecture/diagrams/data-model-erd.md](docs/architecture/diagrams/data-model-erd.md).
+- **Next**: Block D — materialize metadata into `force-app/main/default/objects/` and push to a Salesforce Developer Edition org.
 
 ---
 

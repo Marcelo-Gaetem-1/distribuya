@@ -393,15 +393,21 @@ Rationale: Permission Set-led model is Salesforce's official recommendation sinc
 
 ---
 
-## Pending in Block B (next sessions)
+## Block B — Closed ✅
 
-- **Pricing avanzado** (próxima sesión): cuántos pricebooks usar (uno único vs uno por segmento), modelo de override de precio por cliente, modelo de descuentos por volumen (Price Tiers como Custom Object).
-- **Order domain**: Order standard sí/no, OrderItem, lifecycle de estados (Pendiente / En revisión / Aprobado / En picking / Enviado / Entregado / Pagado / Cancelado), trazabilidad.
-- **Approval matrix modeling**: cómo se materializan los 3 niveles de aprobación (Approval Process standard vs Flow custom).
-- **Stock reservation modeling**: Custom Object `Stock_Reservation__c` con timeout, integración con disponibilidad.
-- **Sharing model**: OWD por objeto, role hierarchy, sharing rules, permission sets.
-- **ADRs formales** (Block B Sesión 3): se priorizan los 9 candidatos y se escriben 5-7 ADRs reales.
-- **ERD final**: diagrama Mermaid C2/C3 con todo el modelo.
+All Block B modeling is complete as of 2026-05-30. Summary of what was closed:
+
+- ✅ **Customer domain** — Account (3 Record Types) + Contact (ACR) + credit data + `Credit_History__c`.
+- ✅ **Product domain** — Product2 + `Product_Family__c` (variants) + `Product_Category__c` + base Pricebook.
+- ✅ **Advanced pricing** — 3 segment Pricebooks + `Customer_Price__c` (override) + `Price_Tier__c` (volume tiers).
+- ✅ **Order domain** — Order header, OrderItem, multi-dimensional lifecycle, Flow Orchestration approvals, stock model + reservation + timeout.
+- ✅ **Sharing model** — OWD, geographic role hierarchy, sharing rules, external (portal) users, Permission-Set-led security.
+- ✅ **Formal ADRs** — 24 candidates consolidated into 7 thematic ADRs ([adr/](../architecture/adr/)).
+- ✅ **Final ERD** — Mermaid data model ([diagrams/data-model-erd.md](../architecture/diagrams/data-model-erd.md)).
+
+> **Carried-forward item**: `Price_Tier__c` link target was resolved to `PricebookEntry` (segment-aware tiers) in ADR-0002. The alternative (`Product2` / global tiers) is documented there and can supersede if needed.
+
+**Next: Block D — materialization.**
 
 ## Pending in Block D (materialization)
 
