@@ -6,7 +6,21 @@ Files are named `XXXX-title-in-kebab-case.md` and stored in this directory.
 
 ## Status
 
-No ADRs written yet. Candidates have been identified during Phase 1 modeling and will be authored during Block B Session 3.
+The first wave of ADRs has been authored during Phase 1 Block B Session 3. The 24 candidates below were consolidated into **7 thematic ADRs** (target was 5–7), each capturing a complete, interconnected architectural decision rather than one atomic sub-decision.
+
+## Authored ADRs
+
+| ADR | Title | Consolidates candidates |
+|---|---|---|
+| [0001](0001-account-hierarchy-record-type-strategy.md) | Account hierarchy and Record Type strategy | 4, 8 |
+| [0002](0002-pricing-architecture.md) | Pricing architecture (segment pricebooks, override, volume tiers) | 1, 7, 10, 11, 12 |
+| [0003](0003-credit-limit-traceability.md) | Credit limit traceability (Credit_History__c) | 9, 5 |
+| [0004](0004-order-multidimensional-status-model.md) | Order lifecycle — multi-dimensional status model | 14 |
+| [0005](0005-credit-approval-orchestration.md) | Credit approval orchestration (Flow Orchestration + Custom Metadata) | 2, 15, 16 |
+| [0006](0006-stock-management-and-reservation.md) | Stock management and reservation (hybrid ERP, reservation, timeout) | 3, 17, 18, 19 |
+| [0007](0007-sharing-and-security-model.md) | Sharing and security model (OWD, hierarchy, rules, external, PS-led) | 20, 21, 22, 23, 24 |
+
+> Candidates **#13** (OrderItem applied-price traceability) and the lookup detail of **#8** (Account Contact Relationships) are documented in the [data model ERD](../diagrams/data-model-erd.md) rather than as standalone ADRs, per their "No formal ADR" assessment below.
 
 ## ADR Candidates
 
