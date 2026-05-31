@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Role xmlns="http://soap.sforce.com/2006/04/metadata">
+    <name>Sales Director</name>
+    <parentRole>CEO_General_Director</parentRole>
+    <mayForecastManagerShare>false</mayForecastManagerShare>
+    <caseAccessLevel>Edit</caseAccessLevel>
+    <contactAccessLevel>Edit</contactAccessLevel>
+    <opportunityAccessLevel>Edit</opportunityAccessLevel>
+</Role>
