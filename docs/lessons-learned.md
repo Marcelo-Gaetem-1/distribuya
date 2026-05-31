@@ -8,6 +8,21 @@
 
 ## Platform constraints (Salesforce metadata / data model)
 
+### LL-014 — You can't have sharing rules on an object whose OWD is Controlled by Parent
+- **What**: ADR-0007 specified `Order` OWD = ControlledByParent *and* two sharing rules on Order (Operations, Finance). Deploy rejected the rules: *"not supported for object Order since its org wide default is 'Controlled By Parent'."*
+- **Why**: Sharing rules only apply to objects with OWD Private or Public Read Only. A Controlled-by-Parent object inherits all access from its parent, so rules would be contradictory. This was an **internal contradiction in the ADR itself**.
+- **Rule**: If a parallel team (not in the owner's role-hierarchy branch) needs access to records by *field criteria*, the object's OWD must be **Private**, not Controlled by Parent. Decision: Order → Private (sales still sees its orders via ownership + role hierarchy). ADR-0007 corrected. Catch these contradictions by listing, per object, {OWD} vs {does it have sharing rules?} before materializing.
+
+### LL-013 — Criteria-based sharing rule fields are type-restricted (no Currency)
+- **What**: `Customer_Price__c` rule with criteria on `Override_Price__c` (Currency) failed: *"not valid workflow field."*
+- **Why**: Criteria sharing-rule fields are limited to Auto Number, Checkbox, Date/Time, Email, Number, Percent, Phone, Picklist, Text/Text Area, URL, **Lookup** — **not Currency**.
+- **Rule**: For an "all records" criteria rule, pick an always-populated allowed-type field (a required Lookup like `Account__c`, or `Name notEqual ''`). Never use Currency/Formula fields as criteria.
+
+### LL-012 — Account sharing rules + AccountSettings deploy is blocked by a known CLI bug
+- **What**: Deploying an Account criteria sharing rule fails with *"AccountSettings is required for account sharing rules"* — even when `AccountSettings` (with `enableAccountOwnerReport=true`) is deployed first, deployed together via `--source-dir`, or referenced together in a `--manifest` package.xml. Known issue: forcedotcom/cli #833.
+- **Why**: A `sf` CLI packaging bug for the Account+AccountSettings+SharingRules combination; not a metadata error on our side (Account OWD is correctly Private).
+- **Rule / workaround**: Don't burn time fighting it via CLI. Options: (a) create the single Account sharing rule **manually in Setup** (1 min), or (b) deploy via the older Metadata API (`mdapi`) ZIP, or (c) retry on a newer CLI version. For DistribuYa: the other 5 rules deploy fine; the Account→Credit&Risk rule is tracked as a manual step. **Always-verify note**: confirmed by reproducing 3 deploy variants, not assumed.
+
 ### LL-011 — Setting Account OWD to Private forces its standard child objects too
 - **What**: Deploying `Account` OWD = Private failed: *"ReadWrite is not a valid sharing model for Opportunity when Account sharing model is Private."* Then `Opportunity = ControlledByParent` ALSO failed (*"ControlledByParent is not a valid sharing model for Opportunity"*).
 - **Why**: Objects that hang off Account in the standard model (**Opportunity**, **Case**) can't be more open than Account. And **Opportunity does not support `ControlledByParent`** — its only valid OWDs are Private / Read / ReadWrite. So with Account Private, Opportunity must be **Private**. (Contact and Order *do* accept `ControlledByParent`.)

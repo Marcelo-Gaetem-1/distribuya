@@ -2,6 +2,10 @@
 
 This directory contains Salesforce metadata in DX (source) format. Block D (materialization) is **in progress** — translating the Phase 1 data model into deployable metadata, domain by domain.
 
+## ⚠️ Manual post-deploy steps (tracked)
+
+- **Account → Credit & Risk sharing rule** (`sharingRules/Account.sharingRules-meta.xml`): blocked by CLI bug (LL-012). The rule file is in source and correct; create it manually in **Setup → Sharing Settings → Account → Sharing Rules** (criteria: `Account Name not equal to (blank)`, share with public group **Credit & Risk**, access **Read Only**), or deploy via mdapi ZIP. The other 5 sharing rules deployed fine via CLI.
+
 ## What's materialized so far
 
 ### ✅ Customer domain

@@ -6,7 +6,11 @@ Accepted — 2026-05-30 (Phase 1, Block B)
 
 > Consolidates ADR candidates #20, #21, #22, #23, #24.
 
-> **Materialization update (Block D, 2026-05-30)**: the original Consequences warned Customer Community Plus might be unavailable in a Developer Edition. **Verified empirically in `distribuya-dev`: Customer Community Plus IS available** (5 licenses Active + the `Customer Community Plus User` [PowerCustomerSuccess] profile). The external/portal sharing model is therefore *materializable* in this org, not merely documentable — this removes the previously-flagged Phase 3 risk. OWD deployed & verified live: Account=Private, Contact/Order=ControlledByParent, Opportunity forced to Private (see LL-011). 14 roles + 4 public groups deployed.
+> **Materialization update (Block D, 2026-05-30)**: the original Consequences warned Customer Community Plus might be unavailable in a Developer Edition. **Verified empirically in `distribuya-dev`: Customer Community Plus IS available** (5 licenses Active + the `Customer Community Plus User` [PowerCustomerSuccess] profile). The external/portal sharing model is therefore *materializable* in this org, not merely documentable — this removes the previously-flagged Phase 3 risk. 14 roles + 4 public groups deployed.
+>
+> **Correction — Order OWD changed from ControlledByParent to Private**: the ADR originally set `Order` OWD = ControlledByParent *and* defined two criteria sharing rules on Order (Operations, Finance). These are mutually exclusive — sharing rules cannot exist on a Controlled-by-Parent object (LL-014). Resolved by making **Order OWD = Private**; sales still sees its orders via ownership + role hierarchy, and the Operations/Finance criteria rules now work. OWD verified live: Account=Private, Order=Private, Opportunity=Private (forced, LL-011), Contact=ControlledByParent.
+>
+> **Sharing rules status**: 5 of 6 deployed & verified live (Credit_History, Customer_Price, Stock_Reservation, Order×2). The Account→Credit&Risk rule is blocked by a CLI bug (LL-012) and tracked as a manual Setup step (see force-app README).
 
 ## Context and Problem Statement
 

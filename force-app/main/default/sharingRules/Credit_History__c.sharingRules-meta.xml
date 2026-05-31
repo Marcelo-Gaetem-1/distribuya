@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SharingRules xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sharingCriteriaRules>
+        <fullName>CreditHistory_to_Credit_Risk</fullName>
+        <accessLevel>Edit</accessLevel>
+        <description>Credit &amp; Risk team gets Read/Write on all Credit History records. See ADR-0007 / ADR-0003.</description>
+        <label>Credit History to Credit and Risk</label>
+        <sharedTo>
+            <group>Credit_Risk</group>
+        </sharedTo>
+        <criteriaItems>
+            <field>Change_Timestamp__c</field>
+            <operation>notEqual</operation>
+            <value></value>
+        </criteriaItems>
+    </sharingCriteriaRules>
+</SharingRules>

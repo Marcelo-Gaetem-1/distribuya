@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SharingRules xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sharingCriteriaRules>
+        <fullName>CustomerPrice_to_Catalog_Admin</fullName>
+        <accessLevel>Edit</accessLevel>
+        <description>Catalog Admin team gets Read/Write on all Customer Price overrides. See ADR-0007 / ADR-0002.</description>
+        <label>Customer Price to Catalog Admin</label>
+        <sharedTo>
+            <group>Catalog_Admin</group>
+        </sharedTo>
+        <criteriaItems>
+            <field>Account__c</field>
+            <operation>notEqual</operation>
+            <value></value>
+        </criteriaItems>
+    </sharingCriteriaRules>
+</SharingRules>

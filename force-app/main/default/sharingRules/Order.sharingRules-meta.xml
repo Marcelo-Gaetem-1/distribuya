@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SharingRules xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sharingCriteriaRules>
+        <fullName>Order_Active_to_Operations</fullName>
+        <accessLevel>Edit</accessLevel>
+        <booleanFilter>1 AND 2 AND 3</booleanFilter>
+        <description>Operations gets Read/Write on approved orders still in fulfillment (Credit Approved AND Fulfillment not Delivered/Cancelled). See ADR-0007.</description>
+        <label>Active Order to Operations</label>
+        <sharedTo>
+            <group>Operations</group>
+        </sharedTo>
+        <criteriaItems>
+            <field>Credit_Status__c</field>
+            <operation>equals</operation>
+            <value>Approved</value>
+        </criteriaItems>
+        <criteriaItems>
+            <field>Fulfillment_Status__c</field>
+            <operation>notEqual</operation>
+            <value>Delivered</value>
+        </criteriaItems>
+        <criteriaItems>
+            <field>Fulfillment_Status__c</field>
+            <operation>notEqual</operation>
+            <value>Cancelled</value>
+        </criteriaItems>
+    </sharingCriteriaRules>
+    <sharingCriteriaRules>
+        <fullName>Order_Delivered_Unpaid_to_Finance</fullName>
+        <accessLevel>Edit</accessLevel>
+        <booleanFilter>1 AND 2</booleanFilter>
+        <description>Finance gets Read/Write on delivered-but-unpaid orders (Fulfillment Delivered AND Payment not Paid). See ADR-0007.</description>
+        <label>Delivered Unpaid Order to Finance</label>
+        <sharedTo>
+            <group>Finance</group>
+        </sharedTo>
+        <criteriaItems>
+            <field>Fulfillment_Status__c</field>
+            <operation>equals</operation>
+            <value>Delivered</value>
+        </criteriaItems>
+        <criteriaItems>
+            <field>Payment_Status__c</field>
+            <operation>notEqual</operation>
+            <value>Paid</value>
+        </criteriaItems>
+    </sharingCriteriaRules>
+</SharingRules>
