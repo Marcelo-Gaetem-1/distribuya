@@ -29,6 +29,10 @@ export default class CatalogBrowser extends LightningElement {
         return this.families && this.families.length > 0;
     }
 
+    get isEmptyCatalog() {
+        return !this.error && (!this.families || this.families.length === 0);
+    }
+
     handleAddItem(event) {
         const { productId, name, quantity } = event.detail;
         const existing = this.cart.find((l) => l.productId === productId);
