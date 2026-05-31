@@ -19,6 +19,7 @@ The first wave of ADRs has been authored during Phase 1 Block B Session 3. The 2
 | [0005](0005-credit-approval-orchestration.md) | Credit approval orchestration (Flow Orchestration + Custom Metadata) | 2, 15, 16 |
 | [0006](0006-stock-management-and-reservation.md) | Stock management and reservation (hybrid ERP, reservation, timeout) | 3, 17, 18, 19 |
 | [0007](0007-sharing-and-security-model.md) | Sharing and security model (OWD, hierarchy, rules, external, PS-led) | 20, 21, 22, 23, 24 |
+| [0008](0008-automation-tool-selection.md) | Automation tool selection — standard → declarative → Apex ladder | Phase 2 |
 
 > Candidates **#13** (OrderItem applied-price traceability) and the lookup detail of **#8** (Account Contact Relationships) are documented in the [data model ERD](../diagrams/data-model-erd.md) rather than as standalone ADRs, per their "No formal ADR" assessment below.
 

@@ -35,6 +35,21 @@
 - ⬜ **Apex service layer pattern** — a single `PricingService` as the source of pricing truth; testability. → *ADR-0002.*
 - ⬜ **Platform Events** for decoupled automation and integration retry/dead-letter. → *Phase 2/4.*
 
+## Priority 4b — Apex fundamentals (active now — explaining what we build)
+
+> You said you don't know much Apex yet. This section explains, in plain terms, the Apex artifacts we're creating in Phase 2 so you can read and defend them. Each maps to a real file in `force-app/main/default/classes/` or `/triggers/`.
+
+- ⬜ **What a `class` is**: a container of related logic. `PricingService` is a *service class* — a reusable bundle of methods (e.g. `resolvePrice`). Think of it as "the pricing brain" any part of the system can call.
+- ⬜ **`public` / `private` / `static` / `with sharing`**: who can call a method, whether it needs an instance, and whether it respects the running user's record access (`with sharing` = yes, important for Trusted). 
+- ⬜ **Inner classes (`PriceRequest`, `PriceResult`)**: small data-holders passed in/out of methods — like a labeled box of inputs and a labeled box of outputs.
+- ⬜ **What a `trigger` is**: code that runs automatically when records are saved (insert/update/delete). `AccountTrigger` fires on Account changes. It should stay *thin* — just delegate.
+- ⬜ **The trigger-handler pattern (P2-1)**: the trigger delegates to a *handler class* (`AccountTriggerHandler`) that holds the real logic. Why: testable, reusable, and one trigger per object avoids ordering chaos.
+- ⬜ **`Trigger.new` / `Trigger.oldMap`**: the records being saved (new values) and a map of their previous values (to detect "did Credit_Limit__c change?").
+- ⬜ **Bulkification (P2-7)**: never put SOQL/DML inside a loop. Salesforce can pass 200 records at once; code must handle the batch with a *fixed* number of queries. Both our classes do this.
+- ⬜ **`@isTest` classes + coverage**: every Apex needs tests proving it works; Salesforce requires ≥75% of lines covered to deploy. Our `PricingServiceTest` / `AccountTriggerHandlerTest` assert real outcomes (not just run the code). `TestDataFactory` builds the test records.
+- ⬜ **When Apex vs Flow** (ADR-0008): the standard → declarative → Apex ladder. Be able to say *why* a given thing is Apex.
+- ⬜ **Governor limits**: Salesforce caps SOQL queries (100/transaction), DML, CPU time. The reason bulkification matters. Worth a Trailhead module.
+
 ## Priority 5 — Architect craft (cross-cutting, ongoing)
 
 - ⬜ **Well-Architected Framework** — fluently map decisions to the 5 pillars (you're already doing this in ADRs; deepen the "why" per pillar).
