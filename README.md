@@ -15,6 +15,9 @@ DistribuYa is a fictional-but-architecturally-realistic B2B wholesale distributo
 | ADR Index | [docs/architecture/adr/README.md](docs/architecture/adr/README.md) |
 | Reusable Patterns | [docs/patterns/](docs/patterns/) |
 | Phase 1 — Foundation & Data Model | [docs/phase-01/](docs/phase-01/) |
+| Org Strategy | [docs/architecture/org-strategy.md](docs/architecture/org-strategy.md) |
+| Lessons Learned | [docs/lessons-learned.md](docs/lessons-learned.md) |
+| Learning Path (skills) | [docs/learning-path.md](docs/learning-path.md) |
 
 ---
 
