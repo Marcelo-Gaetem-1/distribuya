@@ -10,7 +10,11 @@ Accepted — 2026-05-30 (Phase 1, Block B)
 >
 > **Correction — Order OWD changed from ControlledByParent to Private**: the ADR originally set `Order` OWD = ControlledByParent *and* defined two criteria sharing rules on Order (Operations, Finance). These are mutually exclusive — sharing rules cannot exist on a Controlled-by-Parent object (LL-014). Resolved by making **Order OWD = Private**; sales still sees its orders via ownership + role hierarchy, and the Operations/Finance criteria rules now work. OWD verified live: Account=Private, Order=Private, Opportunity=Private (forced, LL-011), Contact=ControlledByParent.
 >
-> **Sharing rules status**: 5 of 6 deployed & verified live (Credit_History, Customer_Price, Stock_Reservation, Order×2). The Account→Credit&Risk rule is blocked by a CLI bug (LL-012) and tracked as a manual Setup step (see force-app README).
+> **Sharing rules status**: all 6 done — 5 deployed via CLI (Credit_History, Customer_Price, Stock_Reservation, Order×2) + Account→Credit&Risk created manually (CLI bug LL-012). 
+>
+> **Permission model status (deployed & verified live)**: 11 atomic internal Permission Sets + 8 Permission Set Groups (per role) + **3 external portal Permission Sets** (Portal Standard / Branch Manager / Account Owner). The portal PSs grant catalog read + order create/edit and **explicitly exclude** Credit_History__c and Stock_Reservation__c, per the ADR's portal visibility matrix.
+>
+> **Deferred to Phase 3**: the **ACR-based Sharing Sets** (which deliver "Account Owner sees all related branch Accounts" and "Branch Manager sees only own branch") require a DistribuYa Experience Cloud site, which is Phase 3 work. The external Permission Sets are in place; the cross-account record visibility layer is wired when the portal is built.
 
 ## Context and Problem Statement
 
