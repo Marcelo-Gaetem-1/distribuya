@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>66.0</apiVersion>
+    <description>When an Order needs credit approval (Credit_Status__c = Pending), call CreditExposureService to compute the exposure ratio and tier, then create an approval Task routed to the order owner with the tier/role context (ADR-0005). Interactive multi-user orchestration is a follow-up; this delivers the automated analysis + routing.</description>
+    <environments>Default</environments>
+    <interviewLabel>Order Credit Approval Routing {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Order Credit Approval Routing</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value><stringValue>LightningFlowBuilder</stringValue></value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <actionCalls>
+        <name>Compute_Exposure</name>
+        <label>Compute Exposure</label>
+        <locationX>176</locationX>
+        <locationY>288</locationY>
+        <actionName>CreditExposureService</actionName>
+        <actionType>apex</actionType>
+        <connector>
+            <targetReference>Create_Approval_Task</targetReference>
+        </connector>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>orderId</name>
+            <value><elementReference>$Record.Id</elementReference></value>
+        </inputParameters>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </actionCalls>
+    <recordCreates>
+        <name>Create_Approval_Task</name>
+        <label>Create Approval Task</label>
+        <locationX>176</locationX>
+        <locationY>408</locationY>
+        <inputAssignments>
+            <field>OwnerId</field>
+            <value><elementReference>$Record.OwnerId</elementReference></value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Priority</field>
+            <value><stringValue>High</stringValue></value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Status</field>
+            <value><stringValue>Not Started</stringValue></value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Subject</field>
+            <value><stringValue>Credit Approval Needed</stringValue></value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>WhatId</field>
+            <value><elementReference>$Record.Id</elementReference></value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Description</field>
+            <value><elementReference>Approval_Message</elementReference></value>
+        </inputAssignments>
+        <object>Task</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordCreates>
+    <formulas>
+        <name>Approval_Message</name>
+        <dataType>String</dataType>
+        <expression>"Credit approval required. Tier: " &amp; {!Compute_Exposure.tierLabel} &amp; " | Approver role: " &amp; {!Compute_Exposure.approverRole} &amp; " | Exposure: " &amp; TEXT({!Compute_Exposure.exposureRatio}) &amp; "%"</expression>
+    </formulas>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Compute_Exposure</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Credit_Status__c</field>
+            <operator>EqualTo</operator>
+            <value><stringValue>Pending</stringValue></value>
+        </filters>
+        <object>Order</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>
