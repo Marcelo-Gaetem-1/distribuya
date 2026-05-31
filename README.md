@@ -23,13 +23,16 @@ DistribuYa is a fictional-but-architecturally-realistic B2B wholesale distributo
 
 ## Current Status
 
-**Phase 1 Block B — Modeling is complete. Ready for Block D (materialization).**
+**Phase 1 — essentially complete. Data model + security model deployed and verified live in a Salesforce Developer Edition org.**
 
-- Block A (Discovery) is closed — 3 scenes completed.
-- Block B (Modeling) is closed — Customer, Product, Advanced Pricing, Order, and Sharing domains all modeled and documented.
-- 7 formal ADRs authored (consolidated from 24 candidates) — see [docs/architecture/adr/](docs/architecture/adr/).
-- Data model ERD published — see [docs/architecture/diagrams/data-model-erd.md](docs/architecture/diagrams/data-model-erd.md).
-- **Next**: Block D — materialize metadata into `force-app/main/default/objects/` and push to a Salesforce Developer Edition org.
+- Block A (Discovery) ✅ — 3 scenes.
+- Block B (Modeling) ✅ — Customer, Product, Advanced Pricing, Order, and Sharing domains modeled; 7 ADRs (from 24 candidates); data-model ERD.
+- Block D (Materialization) ✅ — deployed & verified live in `distribuya-dev`:
+  - **Data model**: Account (6 fields, 3 record types) + Credit_History__c; Product2 + Product_Family__c + Product_Category__c; Customer_Price__c + Price_Tier__c; Order + OrderItem (custom fields) + Stock_Reservation__c + Credit_Approval_Tier__mdt.
+  - **Security**: OWD (least-privilege) + 14-role geographic hierarchy + 4 public groups + 6 sharing rules + 11 atomic permission sets + 8 permission set groups + 3 external portal permission sets.
+  - **Seed data**: 3 segment Pricebooks.
+- **Tracked manual/Phase-3 items**: 3 CMDT record values (CLI-blocked, [manual-deploy/](manual-deploy/README.md)); ACR Sharing Sets (Phase 3, need Experience site).
+- **Next**: Phase 2 — Core automation (Flow Orchestration for credit approval, Apex `PricingService`, Platform Events, stock reservation timeout).
 
 ---
 
