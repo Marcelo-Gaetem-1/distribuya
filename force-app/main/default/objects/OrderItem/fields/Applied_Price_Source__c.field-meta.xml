@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Applied_Price_Source__c</fullName>
+    <label>Applied Price Source</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <description>Which pricing mechanism produced the applied price (audit). See ADR-0002 / decisions-log OrderItem.</description>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Base_Price</fullName><default>true</default><label>Base Price</label></value>
+            <value><fullName>Customer_Override</fullName><default>false</default><label>Customer Override</label></value>
+            <value><fullName>Volume_Tier</fullName><default>false</default><label>Volume Tier</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

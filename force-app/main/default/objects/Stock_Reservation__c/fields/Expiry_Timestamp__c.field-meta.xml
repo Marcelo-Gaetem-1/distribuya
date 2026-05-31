@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Expiry_Timestamp__c</fullName>
+    <label>Expiry Timestamp</label>
+    <type>DateTime</type>
+    <required>false</required>
+    <description>When the reservation expires. Drives the Time-Triggered Path that flips Active to Expired. See ADR-0006.</description>
+</CustomField>

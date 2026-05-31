@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Approver_Role__c</fullName>
+    <label>Approver Role</label>
+    <type>Text</type>
+    <length>80</length>
+    <description>Role responsible for approving orders that fall in this tier (e.g. Sales Rep, Manager, Credit Team). See ADR-0005.</description>
+</CustomField>

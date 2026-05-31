@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Payment_Status__c</fullName>
+    <label>Payment Status</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <description>Payment dimension of the order lifecycle. Owned by finance. See ADR-0004.</description>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Not_Paid</fullName><default>true</default><label>Not Paid</label></value>
+            <value><fullName>Partially_Paid</fullName><default>false</default><label>Partially Paid</label></value>
+            <value><fullName>Paid</fullName><default>false</default><label>Paid</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Customer Price</label>
+    <pluralLabel>Customer Prices</pluralLabel>
+    <nameField>
+        <type>AutoNumber</type>
+        <label>Customer Price Number</label>
+        <displayFormat>CP-{00000}</displayFormat>
+        <trackHistory>false</trackHistory>
+    </nameField>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <sharingModel>Private</sharingModel>
+    <enableActivities>false</enableActivities>
+    <enableReports>true</enableReports>
+    <enableHistory>false</enableHistory>
+    <enableSearch>true</enableSearch>
+    <description>Per-customer negotiated price override for a specific Product2, time-bounded. Highest precedence in the PricingService cascade (override > tier > base). OWD Private. See ADR-0002.</description>
+</CustomObject>

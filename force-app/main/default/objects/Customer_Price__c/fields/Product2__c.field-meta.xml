@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Product2__c</fullName>
+    <label>Product</label>
+    <type>Lookup</type>
+    <referenceTo>Product2</referenceTo>
+    <relationshipLabel>Customer Prices</relationshipLabel>
+    <relationshipName>Customer_Prices</relationshipName>
+    <required>false</required>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The product variant whose price is overridden. NOTE: not required + SetNull because Product2 cannot be the parent of a cascade/restrict lookup, and required lookups demand cascade/restrict — so lookups to Product2 cannot be required at the schema level. Population enforced by app logic. See ADR-0002 materialization finding.</description>
+</CustomField>

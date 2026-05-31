@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Product2__c</fullName>
+    <label>Product</label>
+    <type>Lookup</type>
+    <referenceTo>Product2</referenceTo>
+    <relationshipLabel>Price Tiers</relationshipLabel>
+    <relationshipName>Price_Tiers</relationshipName>
+    <required>false</required>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The product these volume tiers apply to. Part 1 of the segment-aware coordinate (Product2 + Pricebook2) replacing the originally-intended PricebookEntry lookup, which the platform disallows as a custom lookup target. Not required + SetNull because Product2 cannot parent a cascade/restrict lookup. See ADR-0002 materialization finding.</description>
+</CustomField>

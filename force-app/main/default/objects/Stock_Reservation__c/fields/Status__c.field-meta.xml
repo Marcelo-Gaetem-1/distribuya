@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Status__c</fullName>
+    <label>Status</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <description>Reservation lifecycle: Active then a terminal state. See ADR-0006.</description>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Active</fullName><default>true</default><label>Active</label></value>
+            <value><fullName>Consumed</fullName><default>false</default><label>Consumed</label></value>
+            <value><fullName>Released</fullName><default>false</default><label>Released</label></value>
+            <value><fullName>Expired</fullName><default>false</default><label>Expired</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

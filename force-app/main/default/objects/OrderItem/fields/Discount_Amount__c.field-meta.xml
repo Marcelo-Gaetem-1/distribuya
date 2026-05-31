@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Discount_Amount__c</fullName>
+    <label>Discount Amount</label>
+    <type>Currency</type>
+    <formula>BLANKVALUE(Base_Price__c, 0) - UnitPrice</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <precision>16</precision>
+    <scale>2</scale>
+    <required>false</required>
+    <description>Per-unit discount applied = Base_Price__c - UnitPrice. Calculated formula. See ADR-0002 / decisions-log OrderItem.</description>
+</CustomField>

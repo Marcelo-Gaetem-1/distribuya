@@ -33,11 +33,12 @@ erDiagram
     Pricebook2 ||--o{ PricebookEntry : "contains"
     Product2 ||--o{ PricebookEntry : "priced as"
 
-    Customer_Price__c }o--|| Product2 : "LK - overrides price of"
-    Price_Tier__c }o--|| PricebookEntry : "LK - volume tiers (TBD target)"
+    Customer_Price__c }o--o| Product2 : "LK SetNull - overrides price of"
+    Price_Tier__c }o--o| Product2 : "LK SetNull - volume tiers (product)"
+    Price_Tier__c }o--o| Pricebook2 : "LK SetNull - segment of tiers"
 
-    Stock_Reservation__c }o--|| OrderItem : "LK - reserves for"
-    Stock_Reservation__c }o--|| Product2 : "LK - reserves stock of"
+    Stock_Reservation__c }o--o| OrderItem : "LK SetNull - reserves for"
+    Stock_Reservation__c }o--o| Product2 : "LK SetNull - reserves stock of"
 
     Account {
         RecordType RecordTypeId "Single / Parent / Branch"
@@ -96,7 +97,8 @@ erDiagram
         TextArea Notes__c
     }
     Price_Tier__c {
-        Lookup PricebookEntry__c "or Product2__c - TBD"
+        Lookup Product2__c "SetNull (PricebookEntry lookup disallowed)"
+        Lookup Pricebook2__c "segment-aware, SetNull"
         Number Min_Quantity__c
         Number Max_Quantity__c "nullable for top tier"
         Currency Tier_Price__c
@@ -139,6 +141,10 @@ erDiagram
 - **`OrderItem.Price_Modifier_Id__c`** is a *soft* reference (Text) to either `Customer_Price__c` or `Price_Tier__c`, recording which modifier produced the applied price. It is **not** a foreign key, so it is shown as an attribute, not a relationship line. This is deliberate (a single field can point to two different objects for audit purposes).
 - **`AccountContactRelation`** is the standard junction object enabling the many-to-many between `Account` and `Contact` (Account Contact Relationships). Drawn here as the `}o--o{` relationship rather than as a separate box, for readability.
 
-## ⚠️ Open modeling item (carried from decisions-log)
+## ✅ Resolved modeling items (Block D materialization, 2026-05-30)
 
-- **`Price_Tier__c` relationship target is still TBD.** This ERD models it as a Lookup to **`PricebookEntry`** (rationale: this makes volume tiers *segment-aware* — each of the 3 segment Pricebooks can have its own tiers, consistent with the segmented pricing architecture). The alternative is a Lookup to **`Product2`** (global tiers across all segments). This will be resolved during fine modeling / when ADR #12 is authored. **If you prefer global tiers, tell me and I update the diagram.**
+These were verified empirically against the org via deploy dry-runs (the platform is the authority, not assumptions):
+
+- **`Price_Tier__c` relationship target — RESOLVED.** Originally intended as a Lookup to **`PricebookEntry`**, but the platform **disallows custom lookups to `PricebookEntry`** (*"referenceTo value of 'PricebookEntry' does not resolve to a valid sObject type"*). Implemented instead as **`Product2__c` + `Pricebook2__c`** (a pair of lookups identifying the same product+segment coordinate). Segment-awareness preserved; blank `Pricebook2__c` = applies across all segments. See ADR-0002.
+- **Lookups to `Product2` cannot be required.** `Product2` **cannot be the parent of a cascade/restrict lookup** (*"Cannot add a lookup relationship child with cascade or restrict options to Product2"*), and the platform requires required-lookups to use cascade/restrict. Therefore every lookup *to* `Product2` (`Customer_Price__c.Product2__c`, `Price_Tier__c.Product2__c`, `Stock_Reservation__c.Product2__c`) is **not-required + SetNull**; "must have a product" is enforced by app logic (Phase 2), not the schema.
+- **Product2 → Product_Family__c** is a **required Lookup + Restrict** (not Master-Detail): a standard object cannot be the detail side of a master-detail. (This one is *to* a custom object, so Restrict is allowed.)

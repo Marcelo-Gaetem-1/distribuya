@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Pricebook2__c</fullName>
+    <label>Pricebook</label>
+    <type>Lookup</type>
+    <referenceTo>Pricebook2</referenceTo>
+    <relationshipLabel>Price Tiers</relationshipLabel>
+    <relationshipName>Price_Tiers</relationshipName>
+    <required>false</required>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The segment Pricebook these tiers apply to (Retailer/Restaurant/Small Business). Part 2 of the segment-aware coordinate (Product2 + Pricebook2). Blank = applies across all segments for the product. Preserves the segment-aware intent of ADR-0002 despite the PricebookEntry lookup restriction.</description>
+</CustomField>

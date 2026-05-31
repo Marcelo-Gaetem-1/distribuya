@@ -407,7 +407,7 @@ All Block B modeling is complete as of 2026-05-30. Summary of what was closed:
 - ✅ **Formal ADRs** — 24 candidates consolidated into 7 thematic ADRs ([adr/](../architecture/adr/)).
 - ✅ **Final ERD** — Mermaid data model ([diagrams/data-model-erd.md](../architecture/diagrams/data-model-erd.md)).
 
-> **Carried-forward item**: `Price_Tier__c` link target was resolved to `PricebookEntry` (segment-aware tiers) in ADR-0002. The alternative (`Product2` / global tiers) is documented there and can supersede if needed.
+> **Carried-forward item — RESOLVED in Block D (2026-05-30)**: `Price_Tier__c` link target. ADR-0002 originally chose `PricebookEntry`, but materialization proved the platform **disallows custom lookups to `PricebookEntry`**. Replaced with **`Product2__c` + `Pricebook2__c`** (preserves segment-aware tiers; blank Pricebook2 = global). Also discovered: **lookups to `Product2` cannot be required** (Product2 rejects cascade/restrict, and required lookups need it) → all Product2 lookups are not-required + SetNull, with the "must have a product" rule enforced in app logic. Details in ADR-0002 and the [ERD resolved-items section](../architecture/diagrams/data-model-erd.md).
 
 **Next: Block D — materialization.**
 

@@ -51,11 +51,45 @@ objects/
 
 > **Materialization note**: the decisions-log originally specified Product2 → Product_Family__c as **Master-Detail**. This is **impossible on the platform** — a standard object cannot be the detail side of a master-detail ([Salesforce Help](https://help.salesforce.com/s/articleView?id=sf.relationships_considerations.htm&type=5)). Implemented as a **required Lookup with Restrict delete** instead. See decisions-log "Materialization finding".
 
-### Pending (next domains)
+### ✅ Pricing domain
 
-- Pricing (`Customer_Price__c`, `Price_Tier__c`) — note: the 3 segment Pricebooks are *records/data*, not metadata, created separately.
-- Order domain (`Order`, `OrderItem`, `Stock_Reservation__c`, `Credit_Approval_Tier__mdt`)
-- Sharing (record types assignment, sharing rules, permission sets)
+```
+objects/
+├── Customer_Price__c/               (custom object — OWD Private)
+│   └── fields/ Account__c (LK req Restrict), Product2__c (LK SetNull),
+│              Override_Price__c, Effective_Date__c, End_Date__c,
+│              Negotiated_By__c (LK User), Notes__c
+└── Price_Tier__c/                   (custom object — OWD Public Read Only)
+    └── fields/ Product2__c (LK SetNull), Pricebook2__c (LK SetNull, segment-aware),
+               Min_Quantity__c, Max_Quantity__c, Tier_Price__c,
+               Effective_Date__c, End_Date__c
+```
+
+> **Materialization note**: `Price_Tier__c` was intended to Lookup `PricebookEntry`, but the platform disallows custom lookups to PricebookEntry → replaced with `Product2__c` + `Pricebook2__c`. Also, lookups to Product2 can't be required (Product2 rejects cascade/restrict) → all Product2 lookups are not-required + SetNull. See ADR-0002.
+> The 3 segment **Pricebooks** themselves are *records/data*, not metadata — created separately.
+
+### ✅ Order domain
+
+```
+objects/
+├── Order/                           (standard — extended)
+│   └── fields/ Order_Type__c, Credit_Status__c, Fulfillment_Status__c,
+│              Payment_Status__c, Order_Stage__c (text formula, derived)
+├── OrderItem/                       (standard — extended)
+│   └── fields/ Applied_Price_Source__c, Price_Modifier_Id__c,
+│              Base_Price__c, Discount_Amount__c (currency formula)
+├── Stock_Reservation__c/            (custom object — OWD Private)
+│   └── fields/ Product2__c (LK SetNull), OrderItem__c (LK SetNull),
+│              Quantity__c, Status__c, Expiry_Timestamp__c,
+│              Reservation_Reason__c, Released_By__c (LK User), Released_Reason__c
+└── Credit_Approval_Tier__mdt/       (Custom Metadata Type)
+    └── fields/ Min_Ratio__c (Percent), Max_Ratio__c (Percent), Approver_Role__c
+```
+
+### Pending (next)
+
+- **Sharing model** (mostly NOT visible in Schema Builder): record-type assignment, OWD via metadata, public groups, sharing rules, 11 permission sets + 8 permission set groups + 3 external permission sets (ADR-0007).
+- **Seed data**: 3 segment Pricebooks + sample `Credit_Approval_Tier__mdt` records (Tier 1/2/3).
 
 ## Notes / org-level settings (not file metadata)
 

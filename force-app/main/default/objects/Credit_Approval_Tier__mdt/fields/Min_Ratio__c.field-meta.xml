@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Min_Ratio__c</fullName>
+    <label>Min Ratio</label>
+    <type>Percent</type>
+    <precision>5</precision>
+    <scale>0</scale>
+    <description>Lower bound (inclusive) of the exposure-to-limit ratio for this tier, as a percent (e.g. 100 = 100%). See ADR-0005.</description>
+</CustomField>
