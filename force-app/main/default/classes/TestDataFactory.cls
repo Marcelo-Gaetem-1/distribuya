@@ -68,4 +68,25 @@ public class TestDataFactory {
         insert t;
         return t;
     }
+
+    /**
+     * Creates an activated Order with one OrderItem, so Order.TotalAmount is populated.
+     * Needs the product to have a PricebookEntry in the given pricebook (use newSegmentPricebookWithEntry first).
+     */
+    public static Order newOrderWithItem(Id accountId, Id pricebookId, Id productId, Decimal qty, Decimal unitPrice) {
+        Order o = new Order(
+            AccountId = accountId, Pricebook2Id = pricebookId,
+            EffectiveDate = Date.today(), Status = 'Draft'
+        );
+        insert o;
+        PricebookEntry pbe = [
+            SELECT Id FROM PricebookEntry
+            WHERE Pricebook2Id = :pricebookId AND Product2Id = :productId LIMIT 1
+        ];
+        insert new OrderItem(
+            OrderId = o.Id, PricebookEntryId = pbe.Id,
+            Product2Id = productId, Quantity = qty, UnitPrice = unitPrice
+        );
+        return o;
+    }
 }
