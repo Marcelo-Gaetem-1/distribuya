@@ -67,6 +67,20 @@ Pure, testable logic the orchestration calls via an **InvocableMethod**:
 
 ## 8. Build order
 
-1. ✅/⏳ Claude: `CreditExposureService` + `CreditExposureServiceTest` (deploy, verify).
-2. ⏳ Marcelo (UI): build the 3-stage Orchestration calling the invocable.
-3. ⏳ Together: test with a real Order (create order + items, set Pending, watch it route).
+1. ✅ `CreditExposureService` + tests deployed (also reads parent credit limit for branch orders, ADR-0001).
+2. ✅ **Routing automation delivered as a Record-Triggered Flow** (`Order_Credit_Approval_Routing`), not the interactive Orchestration — see note below.
+3. ✅ Validated live: Order 00000100 (Pending) → 83.33% → Tier 1 / Sales Rep → approval Task created with full context.
+
+## 9. Deviation from the original design (honest record)
+
+The original design called for a **Flow Orchestration** with an *interactive* approval step (multi-user work item). That requires building in the Flow UI, which was **unavailable (page not responding)** at build time. To keep momentum, the **analysis + routing** was implemented as a **Record-Triggered Flow** that:
+- fires on `Order.Credit_Status__c = Pending`,
+- calls `CreditExposureService` (exposure + tier + approver role),
+- creates a **High-priority approval Task** on the Order, owned by the order owner, describing the tier/role/exposure.
+
+**What's still pending for full ADR-0005 fidelity** (revisit when the UI is available):
+- Replace/augment the Task with a true **interactive approval** (Orchestration interactive step *or* a standard **Approval Process**) so an approver clicks Approve/Reject.
+- The "Apply Decision" step that writes `Credit_Status__c = Approved/Rejected` from the human decision.
+- Per-role **queue** assignment (currently routed to the order owner).
+
+This is a reasonable Phase-2 increment: the *automated* analysis/routing (the hard, testable part) is live; the *human approval UI* is a declarative follow-up that doesn't need code.
