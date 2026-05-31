@@ -32,8 +32,17 @@ DistribuYa is a fictional-but-architecturally-realistic B2B wholesale distributo
   - **Data model**: Account (6 fields, 3 record types) + Credit_History__c; Product2 + Product_Family__c + Product_Category__c; Customer_Price__c + Price_Tier__c; Order + OrderItem (custom fields) + Stock_Reservation__c + Credit_Approval_Tier__mdt.
   - **Security**: OWD (least-privilege) + 14-role geographic hierarchy + 4 public groups + 6 sharing rules + 11 atomic permission sets + 8 permission set groups + 3 external portal permission sets.
   - **Seed data**: 3 segment Pricebooks.
-- **Tracked manual/Phase-3 items**: 3 CMDT record values (CLI-blocked, [manual-deploy/](manual-deploy/README.md)); ACR Sharing Sets (Phase 3, need Experience site).
-- **Next**: Phase 2 — Core automation (Flow Orchestration for credit approval, Apex `PricingService`, Platform Events, stock reservation timeout).
+- **Tracked manual/Phase-3 items**: ACR Sharing Sets (Phase 3, need Experience site); per-role FLS on functional permission sets.
+
+**Phase 2 — Core Automation: essentially complete. All logic deployed & verified live (22 Apex tests passing).**
+
+- ✅ **PricingService** (Apex) — override→tier→base cascade, bulk-safe, reads parent credit for branches.
+- ✅ **AccountTrigger** — auto credit-history on limit change + branch ownership inheritance.
+- ✅ **Stock Reservation Timeout** (Flow) — Scheduled Path expires stale reservations.
+- ✅ **Credit Approval routing** — `CreditExposureService` (invocable) + Record-Triggered Flow creates routed approval Task by tier (CMDT-driven). *Interactive human approval = declarative follow-up (Approval Process), pending org UI availability.*
+- ✅ **OrderTrigger** — lifecycle status initialization.
+- ✅ **Platform Events** — `Order_Approved__e` published on credit approval (integration seam for Phase 4).
+- **Next**: finish interactive Approval Process (UI), then Phase 3 — Experience Cloud + LWC portal.
 
 ---
 
