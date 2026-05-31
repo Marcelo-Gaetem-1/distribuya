@@ -6,6 +6,8 @@ Accepted — 2026-05-30 (Phase 1, Block B)
 
 > Consolidates ADR candidates #20, #21, #22, #23, #24.
 
+> **Materialization update (Block D, 2026-05-30)**: the original Consequences warned Customer Community Plus might be unavailable in a Developer Edition. **Verified empirically in `distribuya-dev`: Customer Community Plus IS available** (5 licenses Active + the `Customer Community Plus User` [PowerCustomerSuccess] profile). The external/portal sharing model is therefore *materializable* in this org, not merely documentable — this removes the previously-flagged Phase 3 risk. OWD deployed & verified live: Account=Private, Contact/Order=ControlledByParent, Opportunity forced to Private (see LL-011). 14 roles + 4 public groups deployed.
+
 ## Context and Problem Statement
 
 DistribuYa needs a record-visibility and permission model spanning internal commercial/credit/operations/finance teams and external portal users (multi-branch B2B customers). It must keep sensitive data (credit, pricing overrides, stock reservations) restricted, give each function the access it needs, let the multi-branch parent see all its branches, and remain maintainable as the org and roles evolve. We must decide the OWD baseline, the role hierarchy shape, how access is opened (sharing rules vs other), the external-user sharing mechanism, and the profile/permission-set strategy.

@@ -8,6 +8,16 @@
 
 ## Platform constraints (Salesforce metadata / data model)
 
+### LL-011 — Setting Account OWD to Private forces its standard child objects too
+- **What**: Deploying `Account` OWD = Private failed: *"ReadWrite is not a valid sharing model for Opportunity when Account sharing model is Private."* Then `Opportunity = ControlledByParent` ALSO failed (*"ControlledByParent is not a valid sharing model for Opportunity"*).
+- **Why**: Objects that hang off Account in the standard model (**Opportunity**, **Case**) can't be more open than Account. And **Opportunity does not support `ControlledByParent`** — its only valid OWDs are Private / Read / ReadWrite. So with Account Private, Opportunity must be **Private**. (Contact and Order *do* accept `ControlledByParent`.)
+- **Rule**: When setting Account to Private, in the SAME deployment set Opportunity = **Private** (not ControlledByParent) and review Case. Know which objects accept `ControlledByParent` (Contact, Order) vs which don't (Opportunity).
+- **Note**: `EntityDefinition.InternalSharingModel` reports the *effective* model — Contact/Order show "Private" when they're ControlledByParent under a Private Account. That's expected, not a deploy failure.
+
+### LL-010 — Trust the fresh run, not a re-read of stale output
+- **What**: After fixing Opportunity to Private, repeated parses kept showing the *previous* error. Root cause: re-reading old/empty redirected JSON files and garbled terminal text, not the latest run.
+- **Rule**: Verify a run by its own `startDate`/exit code; write each run to a *unique* file or parse inline. When `sf --json` output looks empty or garbled (PowerShell encoding/parallel-call artifacts), re-capture cleanly and Read it — don't trust on-screen text. Keep deploy/verify commands sequential, not parallel.
+
 ### LL-009 — Two fields with the same label confuse the schema
 - **What**: `Product2` ended up with the **standard `Product Family` picklist** *and* our **custom `Product_Family__c` lookup**, both showing the label "Product Family" in Schema Builder.
 - **Why**: We reused the natural business term as the custom field label without checking the standard object already uses it.
