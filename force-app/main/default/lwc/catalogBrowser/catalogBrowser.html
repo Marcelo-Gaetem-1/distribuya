@@ -1,0 +1,39 @@
+<template>
+    <div class="slds-grid slds-gutters slds-wrap">
+        <!-- Catalog -->
+        <div class="slds-col slds-size_1-of-1 slds-large-size_2-of-3">
+            <lightning-card title="Catalog" icon-name="standard:catalog">
+                <template lwc:if={error}>
+                    <div class="slds-p-around_small slds-text-color_error">{error}</div>
+                </template>
+                <template lwc:if={hasCatalog}>
+                    <template for:each={families} for:item="family">
+                        <div key={family.id} class="slds-p-horizontal_small slds-m-bottom_medium">
+                            <h3 class="slds-text-heading_small slds-m-bottom_x-small">
+                                {family.name}
+                                <span class="slds-text-body_small slds-text-color_weak"> — {family.categoryName}</span>
+                            </h3>
+                            <div class="slds-grid slds-gutters slds-wrap">
+                                <template for:each={family.products} for:item="prod">
+                                    <div key={prod.id} class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                                        <c-product-card product={prod} family-name={family.name}
+                                            brand={family.brand} onadditem={handleAddItem}></c-product-card>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </template>
+                <template lwc:if={hasCatalog} lwc:else>
+                    <div class="slds-p-around_small slds-text-color_weak">No products available.</div>
+                </template>
+            </lightning-card>
+        </div>
+        <!-- Cart -->
+        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-3">
+            <c-cart-summary lines={cart} placing={placing}
+                onadditem={handleAddItem} onremoveitem={handleRemoveItem}
+                onplaceorder={handlePlaceOrder}></c-cart-summary>
+        </div>
+    </div>
+</template>

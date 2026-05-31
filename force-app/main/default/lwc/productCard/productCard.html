@@ -1,0 +1,24 @@
+<template>
+    <lightning-card title={product.name} icon-name="standard:product">
+        <div class="slds-p-horizontal_small slds-p-bottom_small">
+            <p class="slds-text-body_small slds-text-color_weak">{brand} · {familyName}</p>
+            <p class="slds-m-top_x-small">
+                Stock: <strong>{product.availableStock}</strong>
+            </p>
+            <template lwc:if={outOfStock}>
+                <lightning-badge label="Out of stock" class="slds-theme_error"></lightning-badge>
+            </template>
+            <template lwc:else>
+                <div class="slds-grid slds-grid_vertical-align-end slds-gutters_x-small slds-m-top_small">
+                    <div class="slds-col">
+                        <lightning-input type="number" label="Qty" min="1" value={quantity}
+                            onchange={handleQtyChange}></lightning-input>
+                    </div>
+                    <div class="slds-col slds-grow-none">
+                        <lightning-button variant="brand" label="Add" onclick={handleAdd}></lightning-button>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

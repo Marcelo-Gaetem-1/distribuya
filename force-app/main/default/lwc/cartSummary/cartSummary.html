@@ -1,0 +1,24 @@
+<template>
+    <lightning-card title="Your Cart" icon-name="standard:cart">
+        <div class="slds-p-horizontal_small slds-p-bottom_small">
+            <template lwc:if={isEmpty}>
+                <p class="slds-text-color_weak">Your cart is empty.</p>
+            </template>
+            <template lwc:else>
+                <ul class="slds-has-dividers_bottom">
+                    <template for:each={lines} for:item="line">
+                        <li key={line.productId} class="slds-item slds-grid slds-grid_align-spread slds-p-vertical_x-small">
+                            <span>{line.name} <strong>×{line.quantity}</strong></span>
+                            <lightning-button-icon icon-name="utility:delete" variant="bare"
+                                alternative-text="Remove" data-id={line.productId}
+                                onclick={handleRemove}></lightning-button-icon>
+                        </li>
+                    </template>
+                </ul>
+                <p class="slds-m-top_small">Total units: <strong>{totalUnits}</strong></p>
+                <lightning-button variant="brand" label="Place Order" class="slds-m-top_small"
+                    onclick={handlePlaceOrder} disabled={placing}></lightning-button>
+            </template>
+        </div>
+    </lightning-card>
+</template>
