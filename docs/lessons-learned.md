@@ -8,6 +8,11 @@
 
 ## Platform constraints (Salesforce metadata / data model)
 
+### LL-016 — CLI may throw UNKNOWN_EXCEPTION deploying Custom Metadata records; isolate, don't guess
+- **What**: Deploying 3 `Credit_Approval_Tier__mdt` records returned `UNKNOWN_EXCEPTION: An unexpected error occurred... ErrorId ...` on dry-run AND real deploy, with TOTAL=0. Reproduced 3×; files well-formed; CMDT records can't be created via `sf data create record` either (need Metadata API).
+- **Diagnosis technique that worked**: temporarily move the CMDT files out → the dry-run then surfaced a *different, real* error (the Account sharing rule) that the UNKNOWN_EXCEPTION had masked, and TOTAL/error counts were unstable. Putting them back reproduced the exception → isolated the cause to the CMDT records + this CLI/org combo.
+- **Rule**: A `UNKNOWN_EXCEPTION` with TOTAL=0 is a server/CLI failure, not your metadata. Don't burn cycles editing the files. Isolate by removing suspect components to see what's masked, then fall back to: manual creation in Setup, mdapi ZIP, or a newer CLI version. Tracked in `manual-deploy/`.
+
 ### LL-015 — A Permission Set Group can't share an API name with a Permission Set; PSGs can't nest
 - **What**: PSGs `Credit_Analyst` and `Credit_Manager` failed: *"The API name you entered is already in use"* — same API names as the existing atomic Permission Sets.
 - **Why**: PSGs and PSs share the same API-name namespace. Also, a PSG cannot contain another PSG — it only lists atomic Permission Sets.
