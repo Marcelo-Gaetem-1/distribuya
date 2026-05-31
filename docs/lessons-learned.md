@@ -8,6 +8,11 @@
 
 ## Apex / automation (Phase 2)
 
+### LL-020 — `RunSpecifiedTests` checks coverage only for the classes those tests exercise
+- **What**: Deploying AccountTrigger + handler with only `AccountTriggerHandlerTest` → deploy **failed** with *"Test coverage of PricingService is 0%, at least 75% required"*, even though the new classes were 100% covered and all 4 tests passed.
+- **Why**: With `--test-level RunSpecifiedTests`, Salesforce computes coverage from *only the specified tests*. PricingService isn't touched by the Account tests, so it read 0% in that run.
+- **Rule**: When deploying with specified tests, include every test class needed to cover all classes being validated (here: `--tests AccountTriggerHandlerTest PricingServiceTest`). Result: 12/12 pass, all classes ≥94%. Alternatively use `RunLocalTests` once the suite is broad.
+
 ### LL-019 — Test data must satisfy the data model's own required fields and uniqueness
 - **What**: PricingService tests failed first with `REQUIRED_FIELD_MISSING [Product_Family__c]` then `DUPLICATE_VALUE` on PricebookEntry.
 - **Why**: Our Block D model made `Product2.Product_Family__c` a required lookup (LL-005), and a product can have only one standard PricebookEntry — but the factory inserted a standard PBE per segment-pricebook call.
