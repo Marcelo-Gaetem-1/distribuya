@@ -2,6 +2,18 @@
 
 Metadata that is **correct in source** but blocked from CLI deployment by known `sf` CLI quirks (not by our design). Each must be applied manually in Setup, or via the Metadata API (mdapi ZIP), once. They are version-controlled here so the source of truth is preserved.
 
+## Seed data (records, not metadata) — for reproducibility in a fresh org
+
+### Segment Pricebooks — DONE ✅
+Created as records (Pricebook2 is data, not metadata). To recreate in another org:
+```bash
+sf data create record -o <org> -s Pricebook2 --values "Name='Retailer' IsActive=true"
+sf data create record -o <org> -s Pricebook2 --values "Name='Restaurant' IsActive=true"
+sf data create record -o <org> -s Pricebook2 --values "Name='Small Business' IsActive=true"
+```
+The Order→Pricebook assignment (by Account.Segment__c) is wired in Phase 2 automation (ADR-0002).
+
+
 ## 1. `sharingRules/Account.sharingRules-meta.xml` — DONE manually ✅
 - **Blocker**: CLI bug #833 (LL-012) — *"AccountSettings is required for account sharing rules"* fails on CLI deploy even with AccountSettings included.
 - **Status**: Created manually in Setup (Account Name ≠ blank → group Credit & Risk, Read Only). Verified live by user.
