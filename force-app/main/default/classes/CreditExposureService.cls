@@ -34,8 +34,13 @@ public with sharing class CreditExposureService {
         Set<Id> orderIds = new Set<Id>();
         for (Request r : requests) if (r.orderId != null) orderIds.add(r.orderId);
 
+        // Credit lives on the parent for branch accounts (ADR-0001): pull both the account's
+        // own credit fields and the parent's, then prefer the parent's when present.
         Map<Id, Order> orders = new Map<Id, Order>([
-            SELECT Id, TotalAmount, Account.Credit_Limit__c, Account.Credit_Used__c
+            SELECT Id, TotalAmount,
+                   Account.ParentId,
+                   Account.Credit_Limit__c, Account.Credit_Used__c,
+                   Account.Parent.Credit_Limit__c, Account.Parent.Credit_Used__c
             FROM Order WHERE Id IN :orderIds
         ]);
 
@@ -50,8 +55,19 @@ public with sharing class CreditExposureService {
             Order o = orders.get(req.orderId);
             if (o == null) { results.add(res); continue; }
 
-            Decimal limitVal = (o.Account != null) ? o.Account.Credit_Limit__c : null;
-            Decimal usedVal = (o.Account != null && o.Account.Credit_Used__c != null) ? o.Account.Credit_Used__c : 0;
+            // Use the parent's credit when the order's account is a branch (has a parent
+            // and no own limit); otherwise use the account's own credit (ADR-0001).
+            Decimal limitVal;
+            Decimal usedVal;
+            if (o.Account != null && o.Account.ParentId != null && o.Account.Credit_Limit__c == null) {
+                limitVal = o.Account.Parent.Credit_Limit__c;
+                usedVal = (o.Account.Parent.Credit_Used__c != null) ? o.Account.Parent.Credit_Used__c : 0;
+            } else if (o.Account != null) {
+                limitVal = o.Account.Credit_Limit__c;
+                usedVal = (o.Account.Credit_Used__c != null) ? o.Account.Credit_Used__c : 0;
+            } else {
+                usedVal = 0;
+            }
             Decimal orderAmt = (o.TotalAmount != null) ? o.TotalAmount : 0;
 
             Decimal ratio;

@@ -68,6 +68,30 @@ private class CreditExposureServiceTest {
     }
 
     @isTest
+    static void branchOrder_usesParentCreditLimit() {
+        // Parent with a 10000 limit; branch has none (ADR-0001). Order on the branch
+        // for 5000 should compute 50% against the PARENT's limit -> Tier 1 / Sales Rep.
+        Id parentRt = Account.SObjectType.getDescribe().getRecordTypeInfosByDeveloperName().get('Parent_Customer').getRecordTypeId();
+        Id branchRt = Account.SObjectType.getDescribe().getRecordTypeInfosByDeveloperName().get('Branch_Customer').getRecordTypeId();
+
+        Account parent = new Account(Name = 'Parent Co', RecordTypeId = parentRt, Segment__c = 'Retailer', Credit_Limit__c = 10000, Credit_Used__c = 0);
+        insert parent;
+        Account branch = new Account(Name = 'Branch Co', RecordTypeId = branchRt, ParentId = parent.Id);
+        insert branch;
+
+        Product2 p = TestDataFactory.newProduct('Widget');
+        Pricebook2 pb = TestDataFactory.newSegmentPricebookWithEntry('Retailer', p.Id, 5000);
+        Order o = TestDataFactory.newOrderWithItem(branch.Id, pb.Id, p.Id, 1, 5000);
+
+        Test.startTest();
+        CreditExposureService.Result r = run(o.Id);
+        Test.stopTest();
+
+        System.assertEquals(50, r.exposureRatio, 'Should compute against parent limit 10000');
+        System.assertEquals('Sales Rep', r.approverRole, 'Branch uses parent credit -> Tier 1');
+    }
+
+    @isTest
     static void emptyInput_isSafe() {
         System.assertEquals(0, CreditExposureService.compute(new List<CreditExposureService.Request>()).size());
         System.assertEquals(0, CreditExposureService.compute(null).size());
