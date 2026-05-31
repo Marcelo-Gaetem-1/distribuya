@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <brand>
+        <headerColor>#0070D2</headerColor>
+        <shouldOverrideOrgTheme>false</shouldOverrideOrgTheme>
+    </brand>
+    <formFactors>Small</formFactors>
+    <formFactors>Large</formFactors>
+    <isNavAutoTempTabsDisabled>false</isNavAutoTempTabsDisabled>
+    <isNavPersonalizationDisabled>true</isNavPersonalizationDisabled>
+    <isNavTabPersistenceDisabled>false</isNavTabPersistenceDisabled>
+    <isOmniPinnedViewEnabled>false</isOmniPinnedViewEnabled>
+    <label>DistribuYa</label>
+    <navType>Standard</navType>
+    <tabs>standard-Account</tabs>
+    <tabs>standard-Contact</tabs>
+    <tabs>standard-Product2</tabs>
+    <tabs>standard-Order</tabs>
+    <tabs>Stock_Reservation__c</tabs>
+    <tabs>Credit_History__c</tabs>
+    <tabs>Product_Category__c</tabs>
+    <tabs>Price_Tier__c</tabs>
+    <tabs>Customer_Price__c</tabs>
+    <tabs>Product_Family__c</tabs>
+    <uiType>Lightning</uiType>
+    <utilityBar>DistribuYa_UtilityBar</utilityBar>
+</CustomApplication>
