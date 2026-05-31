@@ -8,6 +8,11 @@
 
 ## Platform constraints (Salesforce metadata / data model)
 
+### LL-015 — A Permission Set Group can't share an API name with a Permission Set; PSGs can't nest
+- **What**: PSGs `Credit_Analyst` and `Credit_Manager` failed: *"The API name you entered is already in use"* — same API names as the existing atomic Permission Sets.
+- **Why**: PSGs and PSs share the same API-name namespace. Also, a PSG cannot contain another PSG — it only lists atomic Permission Sets.
+- **Rule**: Give PSGs a distinct API name (e.g. suffix `_PSG`) when a same-named PS exists. Compose roles by listing the atomic PSs directly (e.g. Sales Manager PSG lists all of Rep's PSs + Tier 2), since nesting isn't allowed.
+
 ### LL-014 — You can't have sharing rules on an object whose OWD is Controlled by Parent
 - **What**: ADR-0007 specified `Order` OWD = ControlledByParent *and* two sharing rules on Order (Operations, Finance). Deploy rejected the rules: *"not supported for object Order since its org wide default is 'Controlled By Parent'."*
 - **Why**: Sharing rules only apply to objects with OWD Private or Public Read Only. A Controlled-by-Parent object inherits all access from its parent, so rules would be contradictory. This was an **internal contradiction in the ADR itself**.

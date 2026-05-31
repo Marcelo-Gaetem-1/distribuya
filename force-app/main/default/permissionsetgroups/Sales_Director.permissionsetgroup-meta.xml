@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSetGroup xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>PSG - Sales Director</label>
+    <description>Sales Director: Sales Manager capabilities + Reporting Read All. Per ADR-0007.</description>
+    <permissionSets>Account_Management</permissionSets>
+    <permissionSets>Order_Creation</permissionSets>
+    <permissionSets>Order_Approval_Tier_1</permissionSets>
+    <permissionSets>Order_Approval_Tier_2</permissionSets>
+    <permissionSets>Reporting_Read_All</permissionSets>
+</PermissionSetGroup>

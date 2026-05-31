@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSetGroup xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>PSG - Sales Manager</label>
+    <description>Sales Manager: Sales Rep capabilities + Tier 2 approval. (PSGs can't nest, so component PSs are listed.) Per ADR-0007.</description>
+    <permissionSets>Account_Management</permissionSets>
+    <permissionSets>Order_Creation</permissionSets>
+    <permissionSets>Order_Approval_Tier_1</permissionSets>
+    <permissionSets>Order_Approval_Tier_2</permissionSets>
+</PermissionSetGroup>

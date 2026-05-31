@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSetGroup xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>PSG - Credit Manager</label>
+    <description>Credit Manager: Credit Analyst capabilities + credit-limit edit/escalation. Per ADR-0007.</description>
+    <permissionSets>Credit_Analyst</permissionSets>
+    <permissionSets>Credit_Manager</permissionSets>
+</PermissionSetGroup>
