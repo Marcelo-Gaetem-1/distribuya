@@ -8,6 +8,12 @@
 
 ## Apex / automation (Phase 2)
 
+### LL-021 — Custom fields deployed via Metadata API have NO field-level security — invisible to everyone (even admins) until you add FLS
+- **What**: After deploying all custom fields in Block D, the fields were unselectable in Flow Builder and FLS showed *no one* (not even System Administrator) had access. Our permission sets had object permissions but **0 field permissions**.
+- **Why**: Unlike creating a field in the UI (which prompts for FLS per profile), Metadata-API field deploys default to **not visible** on every profile/permission set. FLS must be deployed explicitly as `<fieldPermissions>` on a permission set (or profile). Required fields are exempt (always visible) and *reject* FLS entries.
+- **Rule**: When materializing custom fields via metadata, deploy **field-level security alongside them** — add `<fieldPermissions readable/editable>` to the relevant permission sets. Don't assume admin sees them; admin FLS is also off. Verify with `SELECT Field, PermissionsRead, PermissionsEdit FROM FieldPermissions WHERE Parent.Name = '<PS>'`.
+- **Status**: Stock_Reservation__c FLS added to `Fulfillment_Operations` first (unblocked the Flow). The other objects' FLS across all permission sets is a tracked follow-up (Block D security completion).
+
 ### LL-020 — `RunSpecifiedTests` checks coverage only for the classes those tests exercise
 - **What**: Deploying AccountTrigger + handler with only `AccountTriggerHandlerTest` → deploy **failed** with *"Test coverage of PricingService is 0%, at least 75% required"*, even though the new classes were 100% covered and all 4 tests passed.
 - **Why**: With `--test-level RunSpecifiedTests`, Salesforce computes coverage from *only the specified tests*. PricingService isn't touched by the Account tests, so it read 0% in that run.
