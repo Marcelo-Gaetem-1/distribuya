@@ -6,6 +6,21 @@
 
 ---
 
+## Apex / automation (Phase 2)
+
+### LL-019 — Test data must satisfy the data model's own required fields and uniqueness
+- **What**: PricingService tests failed first with `REQUIRED_FIELD_MISSING [Product_Family__c]` then `DUPLICATE_VALUE` on PricebookEntry.
+- **Why**: Our Block D model made `Product2.Product_Family__c` a required lookup (LL-005), and a product can have only one standard PricebookEntry — but the factory inserted a standard PBE per segment-pricebook call.
+- **Rule**: A green test suite validates the data model too. Factories must (a) populate required custom fields, (b) create prerequisite parents (Product Family), (c) be idempotent for shared rows (one standard PBE per product via an existence check). The required-field failure was *good news* — it proved the schema constraint works.
+
+### LL-018 — `global` (and other access modifiers) are reserved words in Apex
+- **What**: Compile failed with *"Unexpected token 'global'"* — a local variable was named `global`.
+- **Rule**: Never name variables with Apex reserved words (`global`, `public`, `system`, `trigger`, `with`, etc.). Renamed to `globalTier`.
+
+### LL-017 — Run Apex tests on deploy and parse coverage from JSON
+- **What**: `sf project deploy start --test-level RunSpecifiedTests --tests <Class> --json` runs tests during deploy; failures appear under `result.details.runTestResult.failures`, coverage under `codeCoverage`.
+- **Rule**: Always deploy Apex with its tests (never blind). Parse the JSON to a file + read it (avoids the stderr-warning corruption seen with pipes). PricingService landed at 94% (8/8), well above the 75% platform minimum.
+
 ## Platform constraints (Salesforce metadata / data model)
 
 ### LL-016 — CLI may throw UNKNOWN_EXCEPTION deploying Custom Metadata records; isolate, don't guess
