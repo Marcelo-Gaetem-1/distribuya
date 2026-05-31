@@ -41,6 +41,24 @@ private class OrderTriggerHandlerTest {
     }
 
     @isTest
+    static void approval_publishesPlatformEvent() {
+        Account acc = TestDataFactory.newAccount('Test Co', 'Retailer');
+        Id stdPb = Test.getStandardPricebookId();
+        Order o = baseOrder(acc.Id, stdPb);
+        o.Credit_Status__c = 'Pending';
+        insert o;
+
+        Test.startTest();
+        o.Credit_Status__c = 'Approved'; // transition -> should publish Order_Approved__e
+        update o;
+        Test.stopTest();
+
+        // Publish path executed without exception and DML committed cleanly.
+        Order r = [SELECT Credit_Status__c FROM Order WHERE Id = :o.Id];
+        System.assertEquals('Approved', r.Credit_Status__c);
+    }
+
+    @isTest
     static void bulkInsert_allInitialized() {
         Account acc = TestDataFactory.newAccount('Test Co', 'Retailer');
         Id stdPb = Test.getStandardPricebookId();

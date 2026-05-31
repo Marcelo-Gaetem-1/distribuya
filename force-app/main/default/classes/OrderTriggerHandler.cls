@@ -21,4 +21,27 @@ public with sharing class OrderTriggerHandler {
             if (String.isBlank(o.Credit_Status__c))       o.Credit_Status__c = 'Not_Required';
         }
     }
+
+    /**
+     * After update: when Credit_Status__c transitions to 'Approved', publish an
+     * Order_Approved__e platform event so downstream integration (Phase 4 — ERP,
+     * logistics) can react asynchronously without coupling to the order transaction.
+     * Bulk-safe: collects events and publishes once via EventBus.publish.
+     */
+    public static void publishApprovalEvents(List<Order> newOrders, Map<Id, Order> oldMap) {
+        List<Order_Approved__e> events = new List<Order_Approved__e>();
+        for (Order o : newOrders) {
+            Order oldO = oldMap.get(o.Id);
+            Boolean justApproved = o.Credit_Status__c == 'Approved' && oldO.Credit_Status__c != 'Approved';
+            if (justApproved) {
+                events.add(new Order_Approved__e(
+                    Order_Id__c = o.Id,
+                    Order_Number__c = o.OrderNumber,
+                    Account_Id__c = o.AccountId,
+                    Total_Amount__c = o.TotalAmount
+                ));
+            }
+        }
+        if (!events.isEmpty()) EventBus.publish(events);
+    }
 }
