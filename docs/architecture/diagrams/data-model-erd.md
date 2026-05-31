@@ -1,6 +1,6 @@
 # Data Model — Entity Relationship Diagram (Phase 1)
 
-> **Purpose**: Consolidated ERD of all entities closed during Phase 1 Block B (Customer, Product, Order, and Stock domains). This is the synthesis of every modeling decision recorded in [decisions-log.md](../../phase-01/decisions-log.md). It is a living document — it will be updated as Pending items in Block B are closed.
+> **Purpose**: Consolidated ERD of all Phase 1 entities (Customer, Product, Pricing, Order/Stock domains). Synthesis of every modeling decision in [decisions-log.md](../../phase-01/decisions-log.md). **Status: all entities below are deployed and verified live in `distribuya-dev` (Block D).**
 >
 > **C4 level**: This sits below C3 — it is the logical data model (entity/relationship view), complementary to the C2 Container and C3 Component diagrams. Salesforce Schema Builder covers the physical equivalent; this Mermaid version is the versioned, reviewable source of truth.
 
