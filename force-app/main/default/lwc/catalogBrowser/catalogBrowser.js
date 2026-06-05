@@ -2,6 +2,7 @@ import { LightningElement, api, wire, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getCatalog from '@salesforce/apex/CatalogController.getCatalog';
 import placeOrder from '@salesforce/apex/PortalOrderController.placeOrder';
+import getMyAccountId from '@salesforce/apex/PortalOrderController.getMyAccountId';
 
 /**
  * catalogBrowser — B2B portal entry component. Lists the catalog (CatalogController),
@@ -9,11 +10,22 @@ import placeOrder from '@salesforce/apex/PortalOrderController.placeOrder';
  * The account/branch to order for is passed in via @api accountId (set on the portal page).
  */
 export default class CatalogBrowser extends LightningElement {
-    @api accountId;            // account/branch the portal user is ordering for
+    @api accountId;            // optional override; if blank, derived from the logged-in user
     @track families = [];
     @track cart = [];          // [{ productId, name, quantity }]
+    resolvedAccountId;         // the account actually used for ordering
     placing = false;
     error;
+
+    connectedCallback() {
+        // If no accountId was set on the page, derive it from the logged-in user's account.
+        this.resolvedAccountId = this.accountId;
+        if (!this.resolvedAccountId) {
+            getMyAccountId()
+                .then((id) => { this.resolvedAccountId = id; })
+                .catch(() => { /* internal/admin preview: leave null, guarded at placeOrder */ });
+        }
+    }
 
     @wire(getCatalog)
     wiredCatalog({ data, error }) {
@@ -50,14 +62,14 @@ export default class CatalogBrowser extends LightningElement {
     }
 
     async handlePlaceOrder() {
-        if (!this.accountId) {
+        if (!this.resolvedAccountId) {
             this.toast('Error', 'No account context for this order.', 'error');
             return;
         }
         this.placing = true;
         try {
             const lines = this.cart.map((l) => ({ productId: l.productId, quantity: l.quantity }));
-            const orderId = await placeOrder({ accountId: this.accountId, lines });
+            const orderId = await placeOrder({ accountId: this.resolvedAccountId, lines });
             this.toast('Order placed', 'Your order has been created.', 'success');
             this.cart = [];
             this.dispatchEvent(new CustomEvent('ordercreated', { detail: { orderId } }));

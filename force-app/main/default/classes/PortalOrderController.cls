@@ -14,6 +14,18 @@ public with sharing class PortalOrderController {
     }
 
     /**
+     * Returns the Account the running portal user belongs to (via their Contact).
+     * Lets the catalog component default its order-for account to the logged-in user's
+     * own account/branch instead of relying on a hardcoded property.
+     * Returns null for internal users with no Contact (e.g. admins previewing).
+     */
+    @AuraEnabled(cacheable=true)
+    public static Id getMyAccountId() {
+        User u = [SELECT ContactId, Contact.AccountId FROM User WHERE Id = :UserInfo.getUserId() LIMIT 1];
+        return (u.ContactId != null) ? u.Contact.AccountId : null;
+    }
+
+    /**
      * @param accountId the account/branch the order is for
      * @param lines     the cart lines (product + quantity)
      * @return the created Order Id
