@@ -80,6 +80,22 @@ public with sharing class PortalOrderController {
             priceByProduct.put(r.product2Id, r);
         }
 
+        // VALIDATE EVERYTHING FIRST — before any DML — so a bad line never leaves an
+        // orphan Order. Collect any products missing a PricebookEntry and fail atomically.
+        List<String> missing = new List<String>();
+        for (CartLine l : lines) {
+            if (!pbeByProduct.containsKey(l.productId)) {
+                missing.add(l.productId);
+            }
+        }
+        if (!missing.isEmpty()) {
+            throw new AuraHandledException(
+                'Some products are not available for your pricebook (' + pbName +
+                '). Please remove them and try again.'
+            );
+        }
+
+        // All lines valid — now insert Order + OrderItems together (no orphan risk).
         Order ord = new Order(
             AccountId = accountId,
             Pricebook2Id = pricebookId,
@@ -91,15 +107,11 @@ public with sharing class PortalOrderController {
 
         List<OrderItem> items = new List<OrderItem>();
         for (CartLine l : lines) {
-            Id pbeId = pbeByProduct.get(l.productId);
-            if (pbeId == null) {
-                throw new AuraHandledException('Product not available in pricebook: ' + l.productId);
-            }
             PricingService.PriceResult pr = priceByProduct.get(l.productId);
             Decimal unit = (pr != null && pr.finalPrice != null) ? pr.finalPrice : 0;
             items.add(new OrderItem(
                 OrderId = ord.Id,
-                PricebookEntryId = pbeId,
+                PricebookEntryId = pbeByProduct.get(l.productId),
                 Product2Id = l.productId,
                 Quantity = (l.quantity == null || l.quantity <= 0) ? 1 : l.quantity,
                 UnitPrice = unit,
