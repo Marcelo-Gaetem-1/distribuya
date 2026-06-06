@@ -1,16 +1,25 @@
-# ADR 0010: Outbound event integration pattern — Flow vs Apex vs Hybrid
+# ADR 0010: Outbound event integration pattern — Outbound Messages vs Flow vs Apex
 
 ## Status
 
-Accepted — 2026-06-06 (Phase 4)
+**REVISED 2026-06-06** → chosen option changed from **Apex** to **Outbound Messages (standard)**.
 
-> Reached by applying the standard → declarative → Apex ladder (ADR-0008) *with evidence*, including a governor-limit/performance analysis prompted by the apprentice's questions. This ADR documents why Apex is justified here — not assumed.
+> **Honesty correction**: the first version of this ADR compared only Flow-callout vs Apex vs Hybrid and concluded "Apex (it has retry/dead-letter, declarative doesn't)." That analysis **missed a standard option entirely: Outbound Messages**, which provide retry + exponential backoff + a delivery-failure (dead-letter) report **natively, zero code**. The apprentice's question "did we evaluate a standard way?" surfaced the gap. The ladder (ADR-0008) is now applied *completely*. This is itself the lesson: we almost reinvented in Apex a resilience mechanism Salesforce ships standard.
 
 ## Context and Problem Statement
 
 When an Order is credit-approved, DistribuYa publishes `Order_Approved__e` (Phase 2). Phase 4 must consume that event and **confirm the order to the ERP** with a **resilient** pattern: retry with backoff, dead-letter after N failures, and full audit (`Integration_Log__c`) — per ADR-0006 and the Phase-4 discovery (P4-3, P4-6). How should the subscriber + callout be built?
 
-## Considered Options (ladder applied)
+## Considered Options (ladder applied — corrected)
+
+### Option 0 — STANDARD: Outbound Messages (the one we initially missed)
+- A **Workflow/Flow → Outbound Message** sends a SOAP/XML notification to the ERP endpoint when the trigger fires.
+- ✅ **Native retry with exponential backoff** (15 sec → 60 min, for 24h; extensible to 7 days via Support).
+- ✅ **Native dead-letter**: failures land in the *Outbound Message Delivery Failure* report for inspection/manual replay.
+- ✅ **Zero code**, fully declarative.
+- ❌ **SOAP/XML only** (not REST/JSON) — payload is the record's fields, no transformation/enrichment.
+- ❌ Tied to a specific notification shape; not for complex multi-step orchestration.
+- **Verdict**: for "reliably notify the ERP that an order was approved," this delivers the exact resilience (retry + dead-letter) we were about to hand-build in Apex. **This is the standard answer.**
 
 ### Option A — Declarative: External Services + Flow subscriber
 - The ERP REST API can be described with an **OpenAPI schema we author ourselves** (Swagger Editor), registered via **External Services** + a **Named Credential**, exposing the ERP operation as an invocable action.
@@ -29,18 +38,26 @@ When an Order is credit-approved, DistribuYa publishes `Order_Approved__e` (Phas
 
 ## Decision Outcome
 
-Chosen: **Option B — Apex (subscriber + Queueable)**, because the requirement is *resilient* integration (retry + dead-letter + audit), and **resilience is not available declaratively** (verified: no native DLQ, finite retries, Flow can't configure batch size). This passes all four "go-custom" tests: complex logic, reused pattern, needs unit-tested control of retries, and no declarative option fits.
+**Chosen: Option 0 — Outbound Messages (standard)** for the ERP order-confirmation notification, because the requirement (resilient outbound notification: retry + backoff + dead-letter + audit) is **delivered natively, no code** — which is exactly what the ladder demands (use standard before declarative before custom).
 
-**Key evidence that drove this (not assumed):**
-1. The OpenAPI schema *can* be self-authored — so the declarative callout is technically possible (the apprentice was right to challenge the earlier "schema is a blocker" claim). The callout is **not** why we choose Apex.
-2. We choose Apex because **retry + dead-letter + batch-size control** are the requirement, and only Apex provides them coherently.
-3. The **hybrid is worse**, not better — two contexts, mixed limits, inconsistent attribution.
+**Why this overrides the earlier "Apex" conclusion:**
+1. The earlier analysis was incomplete — it never evaluated Outbound Messages, so it wrongly concluded "resilience needs Apex." Outbound Messages provide retry/backoff/dead-letter standard.
+2. Building a Queueable + retry-counter + dead-letter in Apex would **reinvent a native capability** — the exact anti-pattern the standard-first ladder exists to prevent.
+3. The audit requirement (`Integration_Log__c`) is still satisfiable: a Flow can write the log alongside, and the Outbound Message Delivery Failure report covers failure visibility.
+
+**When Apex WOULD still be justified (documented, not chosen now):**
+- ERP requires **REST/JSON** (Outbound Messages are SOAP/XML only) → then Flow HTTP Callout (declarative) or Apex callout, per complexity.
+- Payload needs **enrichment/transformation/multi-record aggregation** beyond the record's own fields.
+- Multi-step orchestration across systems.
+
+For the portfolio POC, the architecturally correct demonstration is: **show the standard mechanism (Outbound Message) as the primary answer, and document the Apex/Flow-callout path as the REST/transformation alternative.**
 
 ## Consequences
 
-- Build: `OrderApprovedSubscriber` (PE trigger) → `ErpOrderConfirmationQueueable` (callout, mocked in Dev Edition) → `IntegrationLogger` (writes `Integration_Log__c`) → retry/backoff + dead-letter.
-- Dev Edition has no real ERP → **HttpCalloutMock** in tests + a stub endpoint; the *patterns* are real and demonstrable, the endpoint is simulated.
-- If a future requirement is a *simple* fire-and-forget notification, Option A (Flow + External Services) is the right tool — documented here so the choice is reusable.
+- **Primary (standard)**: configure a Flow (on `Order_Approved__e` or Order credit-approval) → **Outbound Message** to the ERP endpoint. Native retry/backoff/dead-letter. Optionally a Flow step writes `Integration_Log__c` for unified audit.
+- **`IntegrationLogger` (already built) is NOT wasted**: it remains the audit/dead-letter backbone for the integrations that *do* need Apex (e.g. REST inbound stock sync, payments), and can be called from Flow via an invocable wrapper.
+- **Apex subscriber + Queueable: NOT built** (would reinvent standard). If/when a REST-based ERP is the requirement, revisit with Flow HTTP Callout first.
+- Dev Edition: the Outbound Message endpoint is a mock/RequestBin-style URL; the delivery + retry behavior is real and demonstrable.
 
 ## Alignment with Well-Architected Framework
 
@@ -49,10 +66,11 @@ Chosen: **Option B — Apex (subscriber + Queueable)**, because the requirement 
 | Trusted | Positive | Every call audited in `Integration_Log__c`; dead-letter prevents silent loss. |
 | Easy to Change | Neutral | More code than Flow, but isolated in a service + queueable. |
 | Adaptable | Positive | Named Credential swaps mock↔real ERP without code change. |
-| Resilient | Positive | Retry + backoff + dead-letter — the whole point. |
-| Composable | Positive | Logger + queueable reusable by logistics/payments integrations. |
+| Resilient | Positive | Native retry + backoff + dead-letter report — standard, no custom code to maintain. |
+| Composable | Positive | IntegrationLogger reusable for the Apex-justified integrations (REST inbound sync, payments). |
 
 ## Sources
+- [Outbound Messages — retry/backoff behavior (Salesforce Help)](https://help.salesforce.com/s/articleView?id=platform.workflow_managing_outbound_messages.htm&type=5)
+- [Outbound Message vs Platform Event — Architect guide (SalesforceCodex)](https://salesforcecodex.com/salesforce/salesforce-outbound-message-vs-platform-event-a-complete-architects-guide/)
 - [Connecting to an API with Flow HTTP Callout (Salesforce Help)](https://help.salesforce.com/s/articleView?id=platform.flow_http_callout.htm&type=5)
-- [External Services + OpenAPI (Salesforce Help)](https://help.salesforce.com/s/articleView?id=platform.external_services_examples_openapi_3_0.htm&type=5)
 - [Platform Events subscribe considerations — callouts, batch size (Developer Guide)](https://developer.salesforce.com/docs/atlas.en-us.platform_events.meta/platform_events/platform_events_api_considerations.htm)

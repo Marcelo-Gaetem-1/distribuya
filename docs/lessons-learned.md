@@ -6,6 +6,14 @@
 
 ---
 
+## Integrations / process (Phase 4)
+
+### LL-030 — Apply the standard-first ladder to ALL options, or you'll "justify custom" against an incomplete list
+- **What**: ADR-0010 first compared Flow-callout vs Apex vs Hybrid and concluded "Apex — because resilience (retry/dead-letter) isn't available declaratively." That was **wrong**: it never evaluated **Outbound Messages**, which provide retry + exponential backoff (24h, extensible 7d) + a delivery-failure (dead-letter) report **natively, zero code**. We were about to hand-build in Apex a mechanism Salesforce ships standard.
+- **Why it happened**: the ladder (standard→declarative→custom) was applied to a *subset* of options. "Declarative" was equated with "Flow," skipping the older standard feature (Outbound Messages) that fit best.
+- **Rule**: when running the ladder, enumerate **all** standard mechanisms for the capability — for outbound integration that includes Outbound Messages, Platform Event Relay, Change Data Capture, External Services, *and* Flow callout — before concluding "custom is justified." A custom justification is only valid against a **complete** standard inventory. The apprentice's question "did we evaluate a standard way?" is the exact check that caught this.
+- **Caveat kept**: Apex/Flow-callout still wins when the ERP needs REST/JSON (Outbound Messages are SOAP/XML) or payload transformation. `IntegrationLogger` (already built) stays as the audit backbone for those REST-based integrations.
+
 ## B2B Commerce POC (Phase 3)
 
 ### LL-029 — A full B2B Commerce checkout needs a real payment integration (not a 1-click test gateway)
