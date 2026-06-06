@@ -6,6 +6,17 @@
 
 ---
 
+## B2B Commerce POC (Phase 3)
+
+### LL-029 — A full B2B Commerce checkout needs a real payment integration (not a 1-click test gateway)
+- **What**: "Set up payments" in the refreshed Commerce app reported *"you don't have any payment integrations"* and pointed to building/registering one (Apex payment adapter or external gateway).
+- **Architect takeaway**: a working checkout is **Commerce admin/integration work, not an architecture decision**. For a portfolio/POC, stop at the architecturally meaningful layer (catalog + buyer-group pricing + buyer chain). Don't sink hours into payment/tax/shipping config that demonstrates no judgment. A real rollout integrates the distributor's PO/Net-terms payment process — scope it then.
+
+### LL-028 — Enabling an Account as a B2B Commerce Buyer is a two-field, two-object dance
+- **What**: `BuyerAccount` creation failed first for missing `Name`, then linking via `BuyerGroupMember` failed with *"This Account isn't a Buyer Account"* even though BuyerAccount existed.
+- **Why**: `BuyerAccount` needs `Name` + `BuyerStatus=Active` **and** `IsActive=true` (two separate activations). Until `IsActive=true`, the account isn't recognized as a buyer, so `BuyerGroupMember` is rejected.
+- **Rule**: To make an Account a buyer: (1) create `BuyerAccount` with `Name`, `BuyerId`, `BuyerStatus=Active`; (2) set `IsActive=true`; (3) then create `BuyerGroupMember` (BuyerId + BuyerGroupId). Doing this via CLI was faster and more reliable than hunting the "refreshed Commerce app" UI.
+
 ## Experience Cloud / Portal (Phase 3)
 
 ### LL-027 — ⭐ THE ACTUAL ROOT CAUSE: LWC→Apex auto-mapping of JS objects into an `@AuraEnabled` wrapper list can arrive EMPTY in LWR; pass JSON instead
