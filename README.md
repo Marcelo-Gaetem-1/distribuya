@@ -20,6 +20,7 @@ DistribuYa is a fictional-but-architecturally-realistic B2B wholesale distributo
 | Org Strategy | [docs/architecture/org-strategy.md](docs/architecture/org-strategy.md) |
 | Lessons Learned | [docs/lessons-learned.md](docs/lessons-learned.md) |
 | Learning Path (skills) | [docs/learning-path.md](docs/learning-path.md) |
+| Technical Debt / Hardening Backlog | [docs/technical-debt.md](docs/technical-debt.md) |
 
 ---
 

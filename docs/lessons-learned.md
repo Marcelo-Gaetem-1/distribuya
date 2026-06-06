@@ -8,6 +8,12 @@
 
 ## Experience Cloud / Portal (Phase 3)
 
+### LL-023 — Portal Apex security: "validate-then-elevate" with USER_MODE + scoped SYSTEM_MODE (not a blanket `without sharing`)
+- **What**: Portal `placeOrder` failed silently — the portal user can't see Pricebook2/PricebookEntry (special objects), and `with sharing` made those queries return nothing. First fix used a `without sharing` inner class (works, but elevates *everything*).
+- **Better pattern (applied)**: **validate-then-elevate**. (1) The **entitlement gate** runs in `WITH USER_MODE` — verifies the user can see the target Account (enforces CRUD + FLS + sharing in the user's context). (2) Only after it passes, the **privileged minimum** (read Pricebook/PBE, insert Order/OrderItem with internal fields) runs in `WITH SYSTEM_MODE` / `Database.insert(..., AccessLevel.SYSTEM_MODE)`. This grants the portal **no** standing access to pricebooks or internal fields, yet keeps the blast radius tiny vs a class-wide `without sharing`.
+- **Also**: `with sharing` only governs record sharing — it does **not** enforce FLS/CRUD (Apex runs those in system mode by default). For external-facing `@AuraEnabled` reads, add `WITH USER_MODE` to the SOQL (done in CatalogController) so FLS is actually enforced.
+- **Rule**: For portal/guest Apex: gate in USER_MODE, elevate the minimum in SYSTEM_MODE, never blanket `without sharing`; enforce FLS on reads with USER_MODE. ([Salesforce: Set an Access Mode for DB Operations](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_classes_enforce_usermode.htm))
+
 ### LL-022 — Custom objects have a SEPARATE External Sharing Model; portal users see nothing until you set it
 - **What**: As internal admin the catalog rendered fine, but a Community Plus portal user saw "No products available". `CatalogController` is `with sharing`, so it returned nothing for the external user.
 - **Why**: `Product_Family__c` / `Product_Category__c` had **InternalSharingModel = Read but ExternalSharingModel = Private** (the default for custom objects). External (Community) users are governed by the *external* model, which was Private with no sharing rule to open it → zero records visible.
