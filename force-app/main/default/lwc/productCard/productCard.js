@@ -21,7 +21,7 @@ export default class ProductCard extends LightningElement {
 
     handleAdd() {
         this.dispatchEvent(new CustomEvent('additem', {
-            detail: { productId: this.product.id, name: this.product.name, quantity: this.quantity }
+            detail: { productId: this.product.productId, name: this.product.name, quantity: this.quantity }
         }));
     }
 }

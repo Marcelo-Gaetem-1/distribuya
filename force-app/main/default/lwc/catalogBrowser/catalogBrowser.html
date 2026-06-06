@@ -14,14 +14,14 @@
                 </template>
                 <template lwc:if={hasCatalog}>
                     <template for:each={families} for:item="family">
-                        <div key={family.id} class="slds-p-horizontal_small slds-m-bottom_medium">
+                        <div key={family.familyId} class="slds-p-horizontal_small slds-m-bottom_medium">
                             <h3 class="slds-text-heading_small slds-m-bottom_x-small">
                                 {family.name}
                                 <span class="slds-text-body_small slds-text-color_weak"> — {family.categoryName}</span>
                             </h3>
                             <div class="slds-grid slds-gutters slds-wrap">
                                 <template for:each={family.products} for:item="prod">
-                                    <div key={prod.id} class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                                    <div key={prod.productId} class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
                                         <c-product-card product={prod} family-name={family.name}
                                             brand={family.brand} onadditem={handleAddItem}></c-product-card>
                                     </div>

@@ -7,7 +7,7 @@
 public with sharing class CatalogController {
 
     public class FamilyDTO {
-        @AuraEnabled public Id id;
+        @AuraEnabled public Id familyId;
         @AuraEnabled public String name;
         @AuraEnabled public String brand;
         @AuraEnabled public String imageUrl;
@@ -16,7 +16,9 @@ public with sharing class CatalogController {
     }
 
     public class ProductDTO {
-        @AuraEnabled public Id id;
+        // NB: named 'productId' (not 'id') — LWC/Aura treats a property literally named
+        // 'id' specially when binding, which can blank it out. See LL on portal cart bug.
+        @AuraEnabled public Id productId;
         @AuraEnabled public String name;
         @AuraEnabled public Decimal availableStock;
     }
@@ -33,7 +35,7 @@ public with sharing class CatalogController {
             ORDER BY Name
         ]) {
             FamilyDTO dto = new FamilyDTO();
-            dto.id = f.Id;
+            dto.familyId = f.Id;
             dto.name = f.Name;
             dto.brand = f.Brand__c;
             dto.imageUrl = f.Image_URL__c;
@@ -50,7 +52,7 @@ public with sharing class CatalogController {
             ORDER BY Name
         ]) {
             ProductDTO pd = new ProductDTO();
-            pd.id = p.Id;
+            pd.productId = p.Id;
             pd.name = p.Name;
             pd.availableStock = p.Available_Stock__c;
             byFamily.get(p.Product_Family__c).products.add(pd);
