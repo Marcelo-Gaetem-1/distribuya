@@ -9,6 +9,36 @@
 ## How to read this
 For each: **Fit** (real DistribuYa use case) · **Std/Custom** (mostly config or build?) · **Connects to** (what we already built) · **Caveat** (when it'd be over-engineering).
 
+## The DistribuYa stack — what each layer does (the mental model)
+
+Think of it as a building, each tool a layer with a distinct job:
+
+| Layer | Role in DistribuYa | Analogy | Phase |
+|---|---|---|---|
+| **Salesforce Core** (Sales/Service/Platform) | System of record + business logic: the data model (Account/Product/Order/Credit), automation (PricingService, credit approval, Platform Events), security. Everything else sits on top. | Brain + spine | 1–2 ✅ |
+| **B2B Commerce** (Experience Cloud) | The storefront — B2B customers browse the catalog at *their* price and place orders. Reuses Core's Product2/Pricebooks; orders flow back to Core for credit approval. | The shopfront / customer-facing face | 3 ✅ |
+| **MuleSoft** (or platform-native callouts) | Connects Salesforce to external systems: ERP (real inventory, order confirmation), logistics (carriers), payments. Translates + routes between systems with retry/error handling. | Circulatory system / translator-courier | 4 |
+| **Data Cloud** | Unifies data from all sources (Core, Commerce, ERP, portal behavior) into one customer profile at massive scale. Raw material for forecasting + AI. | Long-term memory | 5 |
+| **Agentforce** | AI agent acting on the unified data: assists buyers in the portal, helps the credit team summarize history, can forecast demand. Needs Data Cloud beneath it. | Intelligent assistant | 5 |
+| **Tableau / CRM Analytics** | Dashboards + analytics for management: orders by segment, accounts near credit limit, tight-stock SKUs, demand forecasting (charter C6). | The eyes (see the big picture) | cross-cutting |
+
+### How they connect (end-to-end flow)
+```
+B2B Customer
+   ↓ buys in
+[B2B Commerce] ──→ creates Order ──→ [Salesforce CORE]
+                                        ↓ credit approval, automation
+                    [MuleSoft] ←────────┤───────→ ERP / Logistics / Payments
+                                        ↓
+                                [Data Cloud] ←── unifies everything
+                                    ↓        ↘
+                            [Agentforce]    [Tableau / CRMA]
+                            (AI assists)    (management analyzes)
+```
+
+### The Architect point
+You don't need all layers from day one. DistribuYa adds each **when a requirement justifies it**: Core (foundation) → B2B Commerce (when there are customers to serve) → integration (Phase 4) → Data Cloud + Agentforce (when there's enough data for AI) → Tableau (when there's data to analyze). Each tool enters when it adds value, not because it exists.
+
 ## Candidate tools
 
 ### 1. Slack — collaboration & notification layer
