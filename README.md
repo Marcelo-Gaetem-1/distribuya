@@ -44,7 +44,16 @@ DistribuYa is a fictional-but-architecturally-realistic B2B wholesale distributo
 - ✅ **Credit Approval routing** — `CreditExposureService` (invocable) + Record-Triggered Flow creates routed approval Task by tier (CMDT-driven). *Interactive human approval = declarative follow-up (Approval Process), pending org UI availability.*
 - ✅ **OrderTrigger** — lifecycle status initialization.
 - ✅ **Platform Events** — `Order_Approved__e` published on credit approval (integration seam for Phase 4).
-- **Next**: finish interactive Approval Process (UI), then Phase 3 — Experience Cloud + LWC portal.
+- ✅ **Approval Process** (`Order_Credit_Approval`) — interactive credit approval; field updates drive `Credit_Status`.
+
+**Phase 3 — Experience Cloud + LWC B2B Portal: working end-to-end (happy path verified live).**
+
+- ✅ **Live LWR site** "DistribuYa Portal" with custom LWC: `catalogBrowser`, `productCard`, `cartSummary`.
+- ✅ **Apex controllers**: `CatalogController` (catalog), `PortalPricingController` (wraps PricingService), `PortalOrderController` (cart → Order, server-side priced, JSON payload).
+- ✅ **Security**: USER_MODE entitlement gate + scoped SYSTEM_MODE; portal permission sets exclude internal data; catalog external-sharing = Read, customer data Private + Sharing Set.
+- ✅ **Verified live**: external portal user placed Order 00000114 (priced via PricingService, lifecycle initialized by Phase 2 triggers).
+- ⚠️ **Architecture note (ADR-0009)**: built custom for portfolio skill demonstration; a real DistribuYa rollout should use **B2B Commerce** (purpose-built). Untested use cases tracked in [technical-debt.md](docs/technical-debt.md) (overrides, multi-branch, credit-over-limit, order history).
+- **Next**: harden portal use cases / order history, then Phase 4 — Integrations.
 
 ---
 
