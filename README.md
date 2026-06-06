@@ -20,6 +20,7 @@ DistribuYa is a fictional-but-architecturally-realistic B2B wholesale distributo
 | Org Strategy | [docs/architecture/org-strategy.md](docs/architecture/org-strategy.md) |
 | Fit-Gap Analysis — Portal (build vs buy) | [docs/architecture/fit-gap-analysis-portal.md](docs/architecture/fit-gap-analysis-portal.md) |
 | B2B Commerce POC — Result & Conclusion | [docs/phase-03/b2b-commerce-poc-result.md](docs/phase-03/b2b-commerce-poc-result.md) |
+| Standard Coverage Validation (requirement by requirement) | [docs/architecture/standard-coverage-validation.md](docs/architecture/standard-coverage-validation.md) |
 | Lessons Learned | [docs/lessons-learned.md](docs/lessons-learned.md) |
 | Learning Path (skills) | [docs/learning-path.md](docs/learning-path.md) |
 | Technical Debt / Hardening Backlog | [docs/technical-debt.md](docs/technical-debt.md) |
@@ -54,8 +55,15 @@ DistribuYa is a fictional-but-architecturally-realistic B2B wholesale distributo
 - ✅ **Apex controllers**: `CatalogController` (catalog), `PortalPricingController` (wraps PricingService), `PortalOrderController` (cart → Order, server-side priced, JSON payload).
 - ✅ **Security**: USER_MODE entitlement gate + scoped SYSTEM_MODE; portal permission sets exclude internal data; catalog external-sharing = Read, customer data Private + Sharing Set.
 - ✅ **Verified live**: external portal user placed Order 00000114 (priced via PricingService, lifecycle initialized by Phase 2 triggers).
-- ⚠️ **Architecture note (ADR-0009)**: built custom for portfolio skill demonstration; a real DistribuYa rollout should use **B2B Commerce** (purpose-built). Untested use cases tracked in [technical-debt.md](docs/technical-debt.md) (overrides, multi-branch, credit-over-limit, order history).
-- **Next**: harden portal use cases / order history, then Phase 4 — Integrations.
+
+**Phase 3 — CLOSED. The real deliverable is the build-vs-buy decision, made and validated.**
+
+The custom LWC portal (above) was a working **POC**. A formal [Fit-Gap Analysis](docs/architecture/fit-gap-analysis-portal.md) then determined that **B2B Commerce** is the correct choice for a B2B distributor. A staged [B2B Commerce POC](docs/phase-03/b2b-commerce-poc-result.md) **proved live** that the standard product reuses the Phase-1 data model (same Product2, the "Small Business" Pricebook with its prices, Accounts as Buyers) — zero core rework. A [Standard Coverage Validation](docs/architecture/standard-coverage-validation.md) confirmed, requirement by requirement, that **standard covers everything except the tiered credit-approval automation** (Phase 2), which is the one genuinely-justified custom piece and stays behind the storefront.
+
+- **Decision**: adopt B2B Commerce for the storefront; keep Phase-1 core data model + Phase-2 credit automation behind it; custom LWC retained as the evaluated POC.
+- **Out of POC scope (by design)**: payment integration, checkout/tax/shipping config, storefront activation — operational admin work, no Architect value (see LL-029).
+- **Data-model impact**: `Product_Category__c`, `Product_Family__c`, `Customer_Price__c`, `Price_Tier__c` are superseded by Commerce standard; core objects + credit automation kept.
+- **Next**: Phase 4 — Integrations (ERP / logistics / payments), with `Order_Approved__e` as the seam.
 
 ---
 
