@@ -6,6 +6,14 @@
 
 ---
 
+## Experience Cloud / Portal (Phase 3)
+
+### LL-022 — Custom objects have a SEPARATE External Sharing Model; portal users see nothing until you set it
+- **What**: As internal admin the catalog rendered fine, but a Community Plus portal user saw "No products available". `CatalogController` is `with sharing`, so it returned nothing for the external user.
+- **Why**: `Product_Family__c` / `Product_Category__c` had **InternalSharingModel = Read but ExternalSharingModel = Private** (the default for custom objects). External (Community) users are governed by the *external* model, which was Private with no sharing rule to open it → zero records visible.
+- **Rule**: For data a portal must read, explicitly set `<externalSharingModel>` in the object metadata (not just `<sharingModel>`). Verify with `SELECT QualifiedApiName, ExternalSharingModel FROM EntityDefinition`. This is the object-level twin of LL-021 (which was field-level FLS).
+- **Security note (good practice, not over-exposure)**: setting catalog objects to external `Read` is correct because a catalog is *shared by design* (all customers see the same products). It is NOT over-exposure because: (1) FLS still whitelists fields — the portal PS only grants Brand/Image/Category/Available_Stock; internal fields like `ERP_Product_ID__c`, Product_Manager, Long_Description stay hidden; (2) per-customer/sensitive objects (Account, Order, Credit_History) remain **Private + ACR Sharing Set** so each user sees only their own. The dividing line: *catalog = public-by-design (external Read OK); customer/financial data = private-per-customer (never external Read, use sharing sets)*. Open business choice noted: showing exact `Available_Stock` numbers vs a qualitative badge is a product decision, not a security one.
+
 ## Apex / automation (Phase 2)
 
 ### LL-021 — Custom fields deployed via Metadata API have NO field-level security — invisible to everyone (even admins) until you add FLS

@@ -15,6 +15,8 @@ Accepted — 2026-05-30 (Phase 1, Block B)
 > **Permission model status (deployed & verified live)**: 11 atomic internal Permission Sets + 8 Permission Set Groups (per role) + **3 external portal Permission Sets** (Portal Standard / Branch Manager / Account Owner). The portal PSs grant catalog read + order create/edit and **explicitly exclude** Credit_History__c and Stock_Reservation__c, per the ADR's portal visibility matrix.
 >
 > **Deferred to Phase 3**: the **ACR-based Sharing Sets** (which deliver "Account Owner sees all related branch Accounts" and "Branch Manager sees only own branch") require a DistribuYa Experience Cloud site, which is Phase 3 work. The external Permission Sets are in place; the cross-account record visibility layer is wired when the portal is built.
+>
+> **Phase 3 update — external sharing model split (built & verified live)**: the DistribuYa Portal (LWR Experience site) is live; `DistribuYa_Portal_Sharing` Sharing Set grants portal users Read on Orders of their own `Contact.Account`. A key principle emerged (LL-022): **catalog objects use external `Read` (shared-by-design — all customers see the same products), while customer/financial objects (Account, Order, Credit_History, Stock_Reservation) stay external `Private` + Sharing Sets (private-per-customer)**. FLS further whitelists fields so internal data (e.g. `ERP_Product_ID__c`) never reaches the portal even on externally-readable objects.
 
 ## Context and Problem Statement
 
