@@ -8,6 +8,7 @@
     </nameField>
     <deploymentStatus>Deployed</deploymentStatus>
     <sharingModel>Read</sharingModel>
+    <externalSharingModel>Read</externalSharingModel>
     <enableActivities>false</enableActivities>
     <enableReports>true</enableReports>
     <enableHistory>false</enableHistory>
