@@ -1,4 +1,10 @@
 <template>
+    <!-- Inline status banner (toasts don't work in LWR sites) -->
+    <template lwc:if={statusMessage}>
+        <div class={statusClass} role="alert">
+            <span class="slds-p-around_x-small">{statusMessage}</span>
+        </div>
+    </template>
     <div class="slds-grid slds-gutters slds-wrap">
         <!-- Catalog -->
         <div class="slds-col slds-size_1-of-1 slds-large-size_2-of-3">

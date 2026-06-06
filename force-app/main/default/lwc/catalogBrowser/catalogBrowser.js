@@ -1,5 +1,4 @@
 import { LightningElement, api, wire, track } from 'lwc';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getCatalog from '@salesforce/apex/CatalogController.getCatalog';
 import placeOrder from '@salesforce/apex/PortalOrderController.placeOrder';
 import getMyAccountId from '@salesforce/apex/PortalOrderController.getMyAccountId';
@@ -7,25 +6,18 @@ import getMyAccountId from '@salesforce/apex/PortalOrderController.getMyAccountI
 /**
  * catalogBrowser — B2B portal entry component. Lists the catalog (CatalogController),
  * lets the user build a cart, and places the order (PortalOrderController).
- * The account/branch to order for is passed in via @api accountId (set on the portal page).
+ *
+ * NOTE: uses inline status messages (not ShowToastEvent) — toasts are NOT supported in
+ * LWR / Build-Your-Own Experience sites; they silently no-op there.
  */
 export default class CatalogBrowser extends LightningElement {
     @api accountId;            // optional override; if blank, derived from the logged-in user
     @track families = [];
     @track cart = [];          // [{ productId, name, quantity }]
-    resolvedAccountId;         // the account actually used for ordering
     placing = false;
     error;
-
-    connectedCallback() {
-        // If no accountId was set on the page, derive it from the logged-in user's account.
-        this.resolvedAccountId = this.accountId;
-        if (!this.resolvedAccountId) {
-            getMyAccountId()
-                .then((id) => { this.resolvedAccountId = id; })
-                .catch(() => { /* internal/admin preview: leave null, guarded at placeOrder */ });
-        }
-    }
+    statusMessage;             // inline success/info banner
+    statusVariant = 'success';
 
     @wire(getCatalog)
     wiredCatalog({ data, error }) {
@@ -62,26 +54,39 @@ export default class CatalogBrowser extends LightningElement {
     }
 
     async handlePlaceOrder() {
-        if (!this.resolvedAccountId) {
-            this.toast('Error', 'No account context for this order.', 'error');
-            return;
-        }
+        this.statusMessage = undefined;
         this.placing = true;
         try {
+            // Resolve the ordering account robustly at submit time: explicit @api override,
+            // else the logged-in user's own account. Awaited here so timing can't race.
+            let acctId = this.accountId;
+            if (!acctId) {
+                acctId = await getMyAccountId();
+            }
+            if (!acctId) {
+                this.setStatus('No account is associated with your user. Contact your administrator.', 'error');
+                return;
+            }
             const lines = this.cart.map((l) => ({ productId: l.productId, quantity: l.quantity }));
-            const orderId = await placeOrder({ accountId: this.resolvedAccountId, lines });
-            this.toast('Order placed', 'Your order has been created.', 'success');
+            const orderId = await placeOrder({ accountId: acctId, lines });
             this.cart = [];
+            this.setStatus('Order placed successfully (' + orderId + ').', 'success');
             this.dispatchEvent(new CustomEvent('ordercreated', { detail: { orderId } }));
         } catch (e) {
-            this.toast('Could not place order', this.reduceError(e), 'error');
+            this.setStatus('Could not place order: ' + this.reduceError(e), 'error');
         } finally {
             this.placing = false;
         }
     }
 
-    toast(title, message, variant) {
-        this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
+    setStatus(message, variant) {
+        this.statusMessage = message;
+        this.statusVariant = variant;
+    }
+
+    get statusClass() {
+        const base = 'slds-notify slds-notify_alert slds-m-bottom_small slds-theme_';
+        return base + (this.statusVariant === 'error' ? 'error' : 'success');
     }
 
     reduceError(error) {
