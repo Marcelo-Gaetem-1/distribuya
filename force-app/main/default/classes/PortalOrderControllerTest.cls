@@ -16,7 +16,9 @@ private class PortalOrderControllerTest {
         line.quantity = 4;
 
         Test.startTest();
-        Id orderId = PortalOrderController.placeOrder(acc.Id, new List<PortalOrderController.CartLine>{ line });
+        Id orderId = PortalOrderController.placeOrder(
+            acc.Id, JSON.serialize(new List<PortalOrderController.CartLine>{ line })
+        );
         Test.stopTest();
 
         Order o = [SELECT Id, AccountId, Status, TotalAmount FROM Order WHERE Id = :orderId];
@@ -34,7 +36,9 @@ private class PortalOrderControllerTest {
         Test.startTest();
         Boolean threw = false;
         try {
-            PortalOrderController.placeOrder(acc.Id, new List<PortalOrderController.CartLine>());
+            PortalOrderController.placeOrder(
+                acc.Id, JSON.serialize(new List<PortalOrderController.CartLine>())
+            );
         } catch (Exception e) {
             threw = true;
         }
@@ -56,7 +60,9 @@ private class PortalOrderControllerTest {
         Test.startTest();
         Boolean threw = false;
         try {
-            PortalOrderController.placeOrder(acc.Id, new List<PortalOrderController.CartLine>{ line });
+            PortalOrderController.placeOrder(
+                acc.Id, JSON.serialize(new List<PortalOrderController.CartLine>{ line })
+            );
         } catch (Exception e) {
             threw = true;
         }

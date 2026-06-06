@@ -9,7 +9,9 @@
 public with sharing class PortalOrderController {
 
     public class CartLine {
-        @AuraEnabled public Id productId;
+        // String (not Id): LWC->Apex deserialization of a typed `Id` field inside an
+        // @AuraEnabled wrapper can silently null it out. String is robust; we cast later.
+        @AuraEnabled public String productId;
         @AuraEnabled public Decimal quantity;
     }
 
@@ -31,7 +33,16 @@ public with sharing class PortalOrderController {
      * @return the created Order Id
      */
     @AuraEnabled
-    public static Id placeOrder(Id accountId, List<CartLine> lines) {
+    public static Id placeOrder(Id accountId, String linesJson) {
+        // Deserialize the cart explicitly from JSON. We do NOT rely on LWC->Apex automatic
+        // mapping into List<CartLine> — that mapping was arriving as empty objects in LWR.
+        // Explicit JSON.deserialize is deterministic. See LL on portal cart bug.
+        List<CartLine> lines;
+        try {
+            lines = (List<CartLine>) JSON.deserialize(linesJson, List<CartLine>.class);
+        } catch (Exception e) {
+            throw new AuraHandledException('Invalid cart data.');
+        }
         if (accountId == null || lines == null || lines.isEmpty()) {
             throw new AuraHandledException('Account and at least one cart line are required.');
         }
@@ -60,7 +71,12 @@ public with sharing class PortalOrderController {
 
         // Map product -> PricebookEntry (required on OrderItem).
         Set<Id> productIds = new Set<Id>();
-        for (CartLine l : lines) productIds.add(l.productId);
+        for (CartLine l : lines) {
+            if (String.isBlank(l.productId)) {
+                throw new AuraHandledException('A cart line is missing its product. Please refresh and try again.');
+            }
+            productIds.add(l.productId);
+        }
         Map<Id, Id> pbeByProduct = new Map<Id, Id>();
         for (PricebookEntry pe : [
             SELECT Id, Product2Id FROM PricebookEntry
@@ -85,7 +101,7 @@ public with sharing class PortalOrderController {
         List<String> missing = new List<String>();
         for (CartLine l : lines) {
             if (!pbeByProduct.containsKey(l.productId)) {
-                missing.add(l.productId);
+                missing.add(String.valueOf(l.productId));
             }
         }
         if (!missing.isEmpty()) {

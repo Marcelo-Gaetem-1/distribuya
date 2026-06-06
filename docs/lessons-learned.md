@@ -8,11 +8,16 @@
 
 ## Experience Cloud / Portal (Phase 3)
 
-### LL-026 — Never name an Apex DTO / data property `id` for LWC binding (it arrives blank)
-- **What**: Portal "Place Order" failed with "products not available in pricebook". The debug log showed `product2Id = null` reaching the PricebookEntry query (Rows:0). Backend was fine (a `runAs` test with the id passed directly worked). The product id was lost **in the LWC layer**.
-- **Why**: The `@AuraEnabled` DTO field was named `id` (`ProductDTO.id`). When LWC/Aura binds an object that has a property literally named `id`, the framework treats it specially and it can come back **undefined** in the component — so `this.product.id` was undefined → `productId: undefined` sent to Apex → `null`.
-- **Rule**: Name DTO key fields explicitly (`productId`, `familyId`, `recordId`) — **never** `id` — for anything that crosses the Apex→LWC boundary. Apply to `key={...}` iterators too.
-- **Method lesson (the big one)**: this bug hid behind THREE earlier "fixes" (pricebook access, USER_MODE/SYSTEM_MODE, validate-before-DML) that were all real improvements but **none were the cause**. It was only found by reading the **debug log** end-to-end and tracing `product2Id` to `null`. *Capture and trace, don't infer.* The user had to insist on the log twice. When a symptom persists after a fix, get the actual execution trace before changing more code.
+### LL-027 — ⭐ THE ACTUAL ROOT CAUSE: LWC→Apex auto-mapping of JS objects into an `@AuraEnabled` wrapper list can arrive EMPTY in LWR; pass JSON instead
+- **What**: Portal "Place Order" failed for ~6 attempts. The decisive debug log showed `lines|[{}]` — the `List<CartLine>` parameter arrived with one **completely empty object** (`{}`), not just a null id. Every property was missing.
+- **Why (verified, not inferred)**: Passing a plain JS array of objects (`[{productId, quantity}]`) to an Apex `@AuraEnabled` method typed `List<CustomWrapper>` relies on Salesforce's automatic JS→Apex object mapping. In this **LWR / Build-Your-Own** site that mapping silently produced empty wrapper instances — the JS property names never bound to the `@AuraEnabled` fields.
+- **Fix (deterministic)**: change the Apex param to `String linesJson` and `JSON.deserialize(linesJson, List<CartLine>.class)`; on the LWC side send `JSON.stringify(lines)`. JSON (de)serialization is explicit and has no auto-mapping to fail. **Result: order created end-to-end, verified live (Order 00000114).**
+- **Rule**: For non-trivial structured arguments from LWC→Apex (especially in LWR/portal), **pass a JSON string and deserialize explicitly**. Don't rely on automatic object→wrapper mapping for lists of custom types.
+
+### LL-026 — (CORRECTED) Don't name a DTO property `id` — good hygiene, but it was NOT the cart bug's cause
+- **Honest correction**: I previously logged LL-026 claiming a DTO field named `id` was THE cause of the portal cart failure. **That was wrong** — it was one of several mid-diagnosis guesses. The real cause is LL-027 (empty wrapper from auto-mapping). Renaming `id`→`productId`/`familyId` is still **good practice** (LWC does treat a literal `id` property specially for DOM tracking, and explicit names avoid `key={}` confusion), so the change was kept — but it did not fix the order.
+- **Rule (still valid)**: prefer explicit DTO field names (`productId`, `familyId`) over `id`. Just don't mistake it for a root cause without proof.
+- **Method lesson (the real one)**: this bug hid behind ~5 "fixes" (pricebook access, USER_MODE/SYSTEM_MODE, validate-before-DML, Id→String, frozen-object copy) — all were real improvements but **none were the cause**. The cause was only found by reading the debug log and seeing `lines|[{}]`. *Capture and trace from the actual execution log; do not infer a cause and ship a fix for it.* When a symptom persists, instrument to SEE the value (we added on-screen DIAG of the exact payload), don't guess again.
 
 ### LL-025 — Validate the whole batch BEFORE any DML (no orphan parents)
 - **What**: `placeOrder` inserted the Order first, then looped OrderItems and `throw`-on-missing-PricebookEntry at line 96. A bad cart line failed *after* the Order existed. (The AuraHandledException did roll back the transaction, so no actual orphan persisted — but the design relied on rollback rather than ordering.)
@@ -20,9 +25,10 @@
 - **Rule**: In a "create parent + children" service, first build/validate *all* children in memory (collect every problem, e.g. products missing a PBE) and fail atomically with a clear message; only then insert parent + children. Cleaner errors, no reliance on rollback.
 
 ### LL-024 — Toasts (`ShowToastEvent`) silently do nothing in LWR / Build-Your-Own sites
-- **What**: Portal "Place Order" appeared to do nothing. `ShowToastEvent` is **not supported in LWR Experience sites** — it no-ops, so neither success nor error was ever visible, masking the real outcome.
+- **What**: Portal "Place Order" appeared to do nothing visible. `ShowToastEvent` is **not supported in LWR Experience sites** — it no-ops.
+- **Scope correction (honest)**: this was a real **visibility** problem (it hid whether the call succeeded/failed), but it was **not the cause** of the order failing — that's LL-027. Fixing toasts→inline banner was what finally let us *see* the real errors, which is how we got to the root cause. So: valid lesson, but it's about diagnosis visibility, not the order bug itself.
 - **Why**: `lightning/platformShowToastEvent` works in Lightning Experience/Aura, not in LWR. Components ported to a Build-Your-Own site lose their toasts silently.
-- **Rule**: For LWR portals, surface success/error with an **inline message/banner** in the component's own DOM (a tracked `statusMessage` + SLDS alert), not toasts. Also: when debugging "nothing happens" on a portal, pull the **debug log** (the user did) — it showed the real `FATAL_ERROR ... line 96`, which inference alone had missed. *Capture, don't infer.*
+- **Rule**: For LWR portals, surface success/error with an **inline message/banner** in the component's own DOM (a tracked `statusMessage` + SLDS alert), not toasts.
 
 ### LL-023 — Portal Apex security: "validate-then-elevate" with USER_MODE + scoped SYSTEM_MODE (not a blanket `without sharing`)
 - **What**: Portal `placeOrder` failed silently — the portal user can't see Pricebook2/PricebookEntry (special objects), and `with sharing` made those queries return nothing. First fix used a `without sharing` inner class (works, but elevates *everything*).

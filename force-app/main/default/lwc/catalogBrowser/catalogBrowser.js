@@ -38,20 +38,25 @@ export default class CatalogBrowser extends LightningElement {
     }
 
     handleAddItem(event) {
-        const { productId, name, quantity } = event.detail;
-        // Guard: never group items with a missing id (would merge everything into one line).
-        if (!productId) {
-            this.setStatus('Could not add "' + (name || 'item') + '": missing product id.', 'error');
+        // Copy event.detail values into plain primitives for the cart.
+        const pid = event.detail ? String(event.detail.productId || '') : '';
+        const pname = event.detail ? String(event.detail.name || '') : '';
+        const qtyRaw = event.detail ? Number(event.detail.quantity) : 1;
+        const qty = qtyRaw > 0 ? qtyRaw : 1;
+
+        if (!pid) {
+            this.setStatus('Could not add item: missing product id.', 'error');
             return;
         }
-        const qty = Number(quantity) > 0 ? Number(quantity) : 1;
-        const existing = this.cart.find((l) => l.productId === productId);
+
+        const newCart = this.cart.map((l) => ({ ...l }));
+        const existing = newCart.find((l) => l.productId === pid);
         if (existing) {
             existing.quantity += qty;
-            this.cart = [...this.cart];
         } else {
-            this.cart = [...this.cart, { productId, name, quantity: qty }];
+            newCart.push({ productId: pid, name: pname, quantity: qty });
         }
+        this.cart = newCart;
     }
 
     handleRemoveItem(event) {
@@ -73,8 +78,13 @@ export default class CatalogBrowser extends LightningElement {
                 this.setStatus('No account is associated with your user. Contact your administrator.', 'error');
                 return;
             }
-            const lines = this.cart.map((l) => ({ productId: l.productId, quantity: l.quantity }));
-            const orderId = await placeOrder({ accountId: acctId, lines });
+            const lines = this.cart.map((l) => ({
+                productId: String(l.productId),
+                quantity: Number(l.quantity)
+            }));
+            // Send as a JSON string and deserialize in Apex — avoids the unreliable
+            // LWC->Apex automatic object-to-wrapper mapping (was arriving empty in LWR).
+            const orderId = await placeOrder({ accountId: acctId, linesJson: JSON.stringify(lines) });
             this.cart = [];
             this.setStatus('Order placed successfully (' + orderId + ').', 'success');
             this.dispatchEvent(new CustomEvent('ordercreated', { detail: { orderId } }));
