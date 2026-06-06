@@ -8,6 +8,12 @@
 
 ## Experience Cloud / Portal (Phase 3)
 
+### LL-026 — Never name an Apex DTO / data property `id` for LWC binding (it arrives blank)
+- **What**: Portal "Place Order" failed with "products not available in pricebook". The debug log showed `product2Id = null` reaching the PricebookEntry query (Rows:0). Backend was fine (a `runAs` test with the id passed directly worked). The product id was lost **in the LWC layer**.
+- **Why**: The `@AuraEnabled` DTO field was named `id` (`ProductDTO.id`). When LWC/Aura binds an object that has a property literally named `id`, the framework treats it specially and it can come back **undefined** in the component — so `this.product.id` was undefined → `productId: undefined` sent to Apex → `null`.
+- **Rule**: Name DTO key fields explicitly (`productId`, `familyId`, `recordId`) — **never** `id` — for anything that crosses the Apex→LWC boundary. Apply to `key={...}` iterators too.
+- **Method lesson (the big one)**: this bug hid behind THREE earlier "fixes" (pricebook access, USER_MODE/SYSTEM_MODE, validate-before-DML) that were all real improvements but **none were the cause**. It was only found by reading the **debug log** end-to-end and tracing `product2Id` to `null`. *Capture and trace, don't infer.* The user had to insist on the log twice. When a symptom persists after a fix, get the actual execution trace before changing more code.
+
 ### LL-025 — Validate the whole batch BEFORE any DML (no orphan parents)
 - **What**: `placeOrder` inserted the Order first, then looped OrderItems and `throw`-on-missing-PricebookEntry at line 96. A bad cart line failed *after* the Order existed. (The AuraHandledException did roll back the transaction, so no actual orphan persisted — but the design relied on rollback rather than ordering.)
 - **Why**: Defensive design shouldn't depend on transaction rollback to stay consistent. Validate inputs fully, then do DML.
