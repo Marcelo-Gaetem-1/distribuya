@@ -18,6 +18,7 @@ DistribuYa is a fictional-but-architecturally-realistic B2B wholesale distributo
 | Phase 2 — Core Automation | [docs/phase-02/discovery-and-plan.md](docs/phase-02/discovery-and-plan.md) |
 | Phase 3 — Experience Cloud + LWC (planning) | [docs/phase-03/discovery-and-plan.md](docs/phase-03/discovery-and-plan.md) |
 | Org Strategy | [docs/architecture/org-strategy.md](docs/architecture/org-strategy.md) |
+| Fit-Gap Analysis — Portal (build vs buy) | [docs/architecture/fit-gap-analysis-portal.md](docs/architecture/fit-gap-analysis-portal.md) |
 | Lessons Learned | [docs/lessons-learned.md](docs/lessons-learned.md) |
 | Learning Path (skills) | [docs/learning-path.md](docs/learning-path.md) |
 | Technical Debt / Hardening Backlog | [docs/technical-debt.md](docs/technical-debt.md) |

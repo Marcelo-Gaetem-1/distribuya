@@ -2,9 +2,11 @@
 
 ## Status
 
-Accepted (retroactively documented) — 2026-06-05 (Phase 3)
+**Revised 2026-06-05 by the [Fit-Gap Analysis](../fit-gap-analysis-portal.md).** After enabling B2B Commerce in the org and running a formal fit-gap, the conclusion changed to **adopt B2B Commerce for the storefront** (keep Phase-1 data model + Phase-2 automation behind it; retire custom LWC to "evaluated POC"). The original reasoning below is kept for the record.
 
-> **Honesty note**: this ADR is written *after* building the portal with custom LWC. The decision was originally made implicitly (P3-1 in the Phase 3 discovery just said "LWR + LWC") **without evaluating the standard product**. This ADR corrects that omission and records the trade-off properly, per the ADR-0008 ladder (standard → declarative → custom).
+Original status: Accepted (retroactively documented) — 2026-06-05 (Phase 3)
+
+> **Honesty note**: this ADR was written *after* building the portal with custom LWC. The decision was originally made implicitly (P3-1 in the Phase 3 discovery just said "LWR + LWC") **without evaluating the standard product**. The Fit-Gap corrects that omission with a proper requirement-by-requirement build-vs-buy, per the ADR-0008 ladder (standard → declarative → custom).
 
 ## Context and Problem Statement
 
