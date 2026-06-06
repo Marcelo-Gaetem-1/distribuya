@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>System__c</fullName>
+    <label>System</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <description>The external system this call targets/originates from.</description>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>ERP</fullName><default>true</default><label>ERP</label></value>
+            <value><fullName>Logistics</fullName><default>false</default><label>Logistics</label></value>
+            <value><fullName>Payments</fullName><default>false</default><label>Payments</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
