@@ -16,7 +16,8 @@ DistribuYa is a fictional-but-architecturally-realistic B2B wholesale distributo
 | Reusable Patterns | [docs/patterns/](docs/patterns/) |
 | Phase 1 — Foundation & Data Model | [docs/phase-01/](docs/phase-01/) |
 | Phase 2 — Core Automation | [docs/phase-02/discovery-and-plan.md](docs/phase-02/discovery-and-plan.md) |
-| Phase 3 — Experience Cloud + LWC (planning) | [docs/phase-03/discovery-and-plan.md](docs/phase-03/discovery-and-plan.md) |
+| Phase 3 — Experience Cloud + LWC (closed) | [docs/phase-03/discovery-and-plan.md](docs/phase-03/discovery-and-plan.md) |
+| Phase 4 — Integrations (planning) | [docs/phase-04/discovery-and-plan.md](docs/phase-04/discovery-and-plan.md) |
 | Org Strategy | [docs/architecture/org-strategy.md](docs/architecture/org-strategy.md) |
 | Fit-Gap Analysis — Portal (build vs buy) | [docs/architecture/fit-gap-analysis-portal.md](docs/architecture/fit-gap-analysis-portal.md) |
 | B2B Commerce POC — Result & Conclusion | [docs/phase-03/b2b-commerce-poc-result.md](docs/phase-03/b2b-commerce-poc-result.md) |
