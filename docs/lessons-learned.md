@@ -8,6 +8,16 @@
 
 ## Experience Cloud / Portal (Phase 3)
 
+### LL-025 — Validate the whole batch BEFORE any DML (no orphan parents)
+- **What**: `placeOrder` inserted the Order first, then looped OrderItems and `throw`-on-missing-PricebookEntry at line 96. A bad cart line failed *after* the Order existed. (The AuraHandledException did roll back the transaction, so no actual orphan persisted — but the design relied on rollback rather than ordering.)
+- **Why**: Defensive design shouldn't depend on transaction rollback to stay consistent. Validate inputs fully, then do DML.
+- **Rule**: In a "create parent + children" service, first build/validate *all* children in memory (collect every problem, e.g. products missing a PBE) and fail atomically with a clear message; only then insert parent + children. Cleaner errors, no reliance on rollback.
+
+### LL-024 — Toasts (`ShowToastEvent`) silently do nothing in LWR / Build-Your-Own sites
+- **What**: Portal "Place Order" appeared to do nothing. `ShowToastEvent` is **not supported in LWR Experience sites** — it no-ops, so neither success nor error was ever visible, masking the real outcome.
+- **Why**: `lightning/platformShowToastEvent` works in Lightning Experience/Aura, not in LWR. Components ported to a Build-Your-Own site lose their toasts silently.
+- **Rule**: For LWR portals, surface success/error with an **inline message/banner** in the component's own DOM (a tracked `statusMessage` + SLDS alert), not toasts. Also: when debugging "nothing happens" on a portal, pull the **debug log** (the user did) — it showed the real `FATAL_ERROR ... line 96`, which inference alone had missed. *Capture, don't infer.*
+
 ### LL-023 — Portal Apex security: "validate-then-elevate" with USER_MODE + scoped SYSTEM_MODE (not a blanket `without sharing`)
 - **What**: Portal `placeOrder` failed silently — the portal user can't see Pricebook2/PricebookEntry (special objects), and `with sharing` made those queries return nothing. First fix used a `without sharing` inner class (works, but elevates *everything*).
 - **Better pattern (applied)**: **validate-then-elevate**. (1) The **entitlement gate** runs in `WITH USER_MODE` — verifies the user can see the target Account (enforces CRUD + FLS + sharing in the user's context). (2) Only after it passes, the **privileged minimum** (read Pricebook/PBE, insert Order/OrderItem with internal fields) runs in `WITH SYSTEM_MODE` / `Database.insert(..., AccessLevel.SYSTEM_MODE)`. This grants the portal **no** standing access to pricebooks or internal fields, yet keeps the blast radius tiny vs a class-wide `without sharing`.
