@@ -36,89 +36,80 @@ public with sharing class PortalOrderController {
             throw new AuraHandledException('Account and at least one cart line are required.');
         }
 
-        // Entitlement check (in the USER's sharing context): the running portal user may only
-        // order for an account they can actually see (their own Contact.Account, or — for an
-        // Account Owner — a related account they have sharing to). If they can't see it, stop.
-        List<Account> visible = [SELECT Id FROM Account WHERE Id = :accountId];
+        // 1) ENTITLEMENT CHECK in USER_MODE: the running portal user may only order for an
+        // account they can actually see (CRUD + FLS + sharing all enforced). If they can't
+        // see it, stop. This is the security gate — it runs in the *user's* context.
+        List<Account> visible = [SELECT Id FROM Account WHERE Id = :accountId WITH USER_MODE];
         if (visible.isEmpty()) {
             throw new AuraHandledException('You are not authorized to order for this account.');
         }
 
-        // Delegate the privileged work (pricebooks, pricing, audit fields) to a trusted
-        // system-mode helper, so portal users need NO access to Pricebook2/PricebookEntry
-        // or internal pricing fields. This avoids over-granting permissions to the portal.
-        return new OrderCreator().create(accountId, lines);
-    }
+        // 2) PRIVILEGED WORK in SYSTEM_MODE, scoped to exactly what the portal user is not
+        // (and should not be) entitled to: reading Pricebook2/PricebookEntry and writing the
+        // order with internal pricing/audit fields. We elevate the minimum, only after the
+        // gate above passed — instead of a broad `without sharing` on the whole helper.
 
-    /**
-     * System-mode helper (without sharing): runs the pricebook/pricing/insert work the
-     * portal user is not (and should not be) entitled to do directly. Reached only after
-     * placeOrder() has verified — in the user's own context — that they can see the account.
-     */
-    private without sharing class OrderCreator {
-
-        Id create(Id accountId, List<CartLine> lines) {
-            // Resolve the segment Pricebook for this account (fallback to Small Business).
-            String segment = [SELECT Segment__c FROM Account WHERE Id = :accountId LIMIT 1].Segment__c;
-            String pbName = String.isNotBlank(segment) ? segment : PricingService.DEFAULT_SEGMENT;
-            List<Pricebook2> pbs = [SELECT Id FROM Pricebook2 WHERE Name = :pbName AND IsActive = true LIMIT 1];
-            if (pbs.isEmpty()) {
-                throw new AuraHandledException('No active pricebook found for segment ' + pbName);
-            }
-            Id pricebookId = pbs[0].Id;
-
-            // Map product -> PricebookEntry (required on OrderItem).
-            Set<Id> productIds = new Set<Id>();
-            for (CartLine l : lines) productIds.add(l.productId);
-            Map<Id, Id> pbeByProduct = new Map<Id, Id>();
-            for (PricebookEntry pe : [
-                SELECT Id, Product2Id FROM PricebookEntry
-                WHERE Pricebook2Id = :pricebookId AND Product2Id IN :productIds AND IsActive = true
-            ]) {
-                pbeByProduct.put(pe.Product2Id, pe.Id);
-            }
-
-            // Price every line via the single source of truth.
-            List<PricingService.PriceRequest> reqs = new List<PricingService.PriceRequest>();
-            for (CartLine l : lines) {
-                reqs.add(new PricingService.PriceRequest(accountId, l.productId, l.quantity, Date.today()));
-            }
-            Map<Id, PricingService.PriceResult> priceByProduct = new Map<Id, PricingService.PriceResult>();
-            for (PricingService.PriceResult r : PricingService.resolvePrices(reqs)) {
-                priceByProduct.put(r.product2Id, r);
-            }
-
-            Order ord = new Order(
-                AccountId = accountId,
-                Pricebook2Id = pricebookId,
-                EffectiveDate = Date.today(),
-                Status = 'Draft',
-                Order_Type__c = 'Standard'
-            );
-            insert ord;
-
-            List<OrderItem> items = new List<OrderItem>();
-            for (CartLine l : lines) {
-                Id pbeId = pbeByProduct.get(l.productId);
-                if (pbeId == null) {
-                    throw new AuraHandledException('Product not available in pricebook: ' + l.productId);
-                }
-                PricingService.PriceResult pr = priceByProduct.get(l.productId);
-                Decimal unit = (pr != null && pr.finalPrice != null) ? pr.finalPrice : 0;
-                items.add(new OrderItem(
-                    OrderId = ord.Id,
-                    PricebookEntryId = pbeId,
-                    Product2Id = l.productId,
-                    Quantity = (l.quantity == null || l.quantity <= 0) ? 1 : l.quantity,
-                    UnitPrice = unit,
-                    Base_Price__c = pr != null ? pr.basePrice : null,
-                    Applied_Price_Source__c = pr != null ? mapSource(pr.source) : null,
-                    Price_Modifier_Id__c = pr != null && pr.modifierId != null ? String.valueOf(pr.modifierId) : null
-                ));
-            }
-            insert items;
-            return ord.Id;
+        // Segment Pricebook (fallback to Small Business).
+        String segment = [SELECT Segment__c FROM Account WHERE Id = :accountId WITH SYSTEM_MODE LIMIT 1].Segment__c;
+        String pbName = String.isNotBlank(segment) ? segment : PricingService.DEFAULT_SEGMENT;
+        List<Pricebook2> pbs = [SELECT Id FROM Pricebook2 WHERE Name = :pbName AND IsActive = true WITH SYSTEM_MODE LIMIT 1];
+        if (pbs.isEmpty()) {
+            throw new AuraHandledException('No active pricebook found for segment ' + pbName);
         }
+        Id pricebookId = pbs[0].Id;
+
+        // Map product -> PricebookEntry (required on OrderItem).
+        Set<Id> productIds = new Set<Id>();
+        for (CartLine l : lines) productIds.add(l.productId);
+        Map<Id, Id> pbeByProduct = new Map<Id, Id>();
+        for (PricebookEntry pe : [
+            SELECT Id, Product2Id FROM PricebookEntry
+            WHERE Pricebook2Id = :pricebookId AND Product2Id IN :productIds AND IsActive = true
+            WITH SYSTEM_MODE
+        ]) {
+            pbeByProduct.put(pe.Product2Id, pe.Id);
+        }
+
+        // Price every line via the single source of truth (server-side; anti-tamper).
+        List<PricingService.PriceRequest> reqs = new List<PricingService.PriceRequest>();
+        for (CartLine l : lines) {
+            reqs.add(new PricingService.PriceRequest(accountId, l.productId, l.quantity, Date.today()));
+        }
+        Map<Id, PricingService.PriceResult> priceByProduct = new Map<Id, PricingService.PriceResult>();
+        for (PricingService.PriceResult r : PricingService.resolvePrices(reqs)) {
+            priceByProduct.put(r.product2Id, r);
+        }
+
+        Order ord = new Order(
+            AccountId = accountId,
+            Pricebook2Id = pricebookId,
+            EffectiveDate = Date.today(),
+            Status = 'Draft',
+            Order_Type__c = 'Standard'
+        );
+        Database.insert(ord, true, AccessLevel.SYSTEM_MODE);
+
+        List<OrderItem> items = new List<OrderItem>();
+        for (CartLine l : lines) {
+            Id pbeId = pbeByProduct.get(l.productId);
+            if (pbeId == null) {
+                throw new AuraHandledException('Product not available in pricebook: ' + l.productId);
+            }
+            PricingService.PriceResult pr = priceByProduct.get(l.productId);
+            Decimal unit = (pr != null && pr.finalPrice != null) ? pr.finalPrice : 0;
+            items.add(new OrderItem(
+                OrderId = ord.Id,
+                PricebookEntryId = pbeId,
+                Product2Id = l.productId,
+                Quantity = (l.quantity == null || l.quantity <= 0) ? 1 : l.quantity,
+                UnitPrice = unit,
+                Base_Price__c = pr != null ? pr.basePrice : null,
+                Applied_Price_Source__c = pr != null ? mapSource(pr.source) : null,
+                Price_Modifier_Id__c = pr != null && pr.modifierId != null ? String.valueOf(pr.modifierId) : null
+            ));
+        }
+        Database.insert(items, true, AccessLevel.SYSTEM_MODE);
+        return ord.Id;
     }
 
     private static String mapSource(PricingService.PriceSource s) {

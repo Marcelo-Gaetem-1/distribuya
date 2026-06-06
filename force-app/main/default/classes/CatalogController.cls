@@ -29,6 +29,7 @@ public with sharing class CatalogController {
         for (Product_Family__c f : [
             SELECT Id, Name, Brand__c, Image_URL__c, Product_Category__r.Name
             FROM Product_Family__c
+            WITH USER_MODE
             ORDER BY Name
         ]) {
             FamilyDTO dto = new FamilyDTO();
@@ -45,6 +46,7 @@ public with sharing class CatalogController {
             SELECT Id, Name, Available_Stock__c, Product_Family__c
             FROM Product2
             WHERE IsActive = true AND Product_Family__c IN :byFamily.keySet()
+            WITH USER_MODE
             ORDER BY Name
         ]) {
             ProductDTO pd = new ProductDTO();
