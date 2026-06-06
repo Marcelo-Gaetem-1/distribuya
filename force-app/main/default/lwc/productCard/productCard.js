@@ -1,27 +1,35 @@
 import { LightningElement, api } from 'lwc';
 
 /**
- * productCard — presentational card for a single product variant.
- * Emits an `additem` event when the user adds it to the cart.
+ * productCard — presentational card for one product variant.
+ * Uses PRIMITIVE @api props (not a nested object) for robustness across LWR/serialization.
+ * Emits `additem` with the productId when the user adds it.
  */
 export default class ProductCard extends LightningElement {
-    @api product;     // { id, name, availableStock }
-    @api familyName;
+    @api productId;
+    @api productName;
     @api brand;
+    @api familyName;
+    @api availableStock;
 
     quantity = 1;
 
     get outOfStock() {
-        return !this.product || this.product.availableStock <= 0;
+        return this.availableStock == null || this.availableStock <= 0;
     }
 
     handleQtyChange(event) {
-        this.quantity = parseInt(event.target.value, 10) || 1;
+        const v = parseInt(event.target.value, 10);
+        this.quantity = (isNaN(v) || v < 1) ? 1 : v;
     }
 
     handleAdd() {
         this.dispatchEvent(new CustomEvent('additem', {
-            detail: { productId: this.product.productId, name: this.product.name, quantity: this.quantity }
+            detail: {
+                productId: this.productId,
+                name: this.productName,
+                quantity: this.quantity
+            }
         }));
     }
 }

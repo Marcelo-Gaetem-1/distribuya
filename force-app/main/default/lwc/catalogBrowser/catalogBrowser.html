@@ -22,8 +22,13 @@
                             <div class="slds-grid slds-gutters slds-wrap">
                                 <template for:each={family.products} for:item="prod">
                                     <div key={prod.productId} class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
-                                        <c-product-card product={prod} family-name={family.name}
-                                            brand={family.brand} onadditem={handleAddItem}></c-product-card>
+                                        <c-product-card
+                                            product-id={prod.productId}
+                                            product-name={prod.name}
+                                            available-stock={prod.availableStock}
+                                            family-name={family.name}
+                                            brand={family.brand}
+                                            onadditem={handleAddItem}></c-product-card>
                                     </div>
                                 </template>
                             </div>

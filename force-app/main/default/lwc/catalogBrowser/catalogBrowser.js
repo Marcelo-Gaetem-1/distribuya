@@ -39,12 +39,18 @@ export default class CatalogBrowser extends LightningElement {
 
     handleAddItem(event) {
         const { productId, name, quantity } = event.detail;
+        // Guard: never group items with a missing id (would merge everything into one line).
+        if (!productId) {
+            this.setStatus('Could not add "' + (name || 'item') + '": missing product id.', 'error');
+            return;
+        }
+        const qty = Number(quantity) > 0 ? Number(quantity) : 1;
         const existing = this.cart.find((l) => l.productId === productId);
         if (existing) {
-            existing.quantity += quantity;
+            existing.quantity += qty;
             this.cart = [...this.cart];
         } else {
-            this.cart = [...this.cart, { productId, name, quantity }];
+            this.cart = [...this.cart, { productId, name, quantity: qty }];
         }
     }
 

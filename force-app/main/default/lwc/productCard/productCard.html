@@ -1,9 +1,9 @@
 <template>
-    <lightning-card title={product.name} icon-name="standard:product">
+    <lightning-card title={productName} icon-name="standard:product">
         <div class="slds-p-horizontal_small slds-p-bottom_small">
             <p class="slds-text-body_small slds-text-color_weak">{brand} · {familyName}</p>
             <p class="slds-m-top_x-small">
-                Stock: <strong>{product.availableStock}</strong>
+                Stock: <strong>{availableStock}</strong>
             </p>
             <template lwc:if={outOfStock}>
                 <lightning-badge label="Out of stock" class="slds-theme_error"></lightning-badge>
