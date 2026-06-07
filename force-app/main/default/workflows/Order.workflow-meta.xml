@@ -4,7 +4,7 @@
         <fullName>Credit_Status</fullName>
         <field>Credit_Status__c</field>
         <literalValue>Approved</literalValue>
-        <name>Credit_Status</name>
+        <name>Credit Status</name>
         <notifyAssignee>false</notifyAssignee>
         <operation>Literal</operation>
         <protected>false</protected>
@@ -14,10 +14,25 @@
         <fullName>Credit_Status_rejected</fullName>
         <field>Credit_Status__c</field>
         <literalValue>Rejected</literalValue>
-        <name>Credit_Status_rejected</name>
+        <name>Credit Status rejected</name>
         <notifyAssignee>false</notifyAssignee>
         <operation>Literal</operation>
         <protected>false</protected>
         <reevaluateOnChange>false</reevaluateOnChange>
     </fieldUpdates>
+    <outboundMessages>
+        <fullName>ERP_Order_Confirmation</fullName>
+        <apiVersion>62.0</apiVersion>
+        <endpointUrl>https://webhook.site/06d31e25-8a84-45b8-aac1-66bae4792fa2</endpointUrl>
+        <fields>AccountId</fields>
+        <fields>Credit_Status__c</fields>
+        <fields>Id</fields>
+        <fields>OrderNumber</fields>
+        <fields>TotalAmount</fields>
+        <includeSessionId>false</includeSessionId>
+        <integrationUser>marcelogaetemunoz1@cunning-unicorn-5wzqf1.com</integrationUser>
+        <name>ERP Order Confirmation</name>
+        <protected>false</protected>
+        <useDeadLetterQueue>false</useDeadLetterQueue>
+    </outboundMessages>
 </Workflow>
