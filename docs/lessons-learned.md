@@ -8,6 +8,12 @@
 
 ## Integrations / process (Phase 4)
 
+### LL-031 — Bulk API is async: success/failure lives in the JOB, not the screen — and on Windows the CSV must be CRLF
+- **What**: A `sf data upsert bulk` (Product2, upsert by `ERP_Product_ID__c`) appeared to "run" but the data didn't change. Querying the job (`/jobs/ingest/{id}`) showed `state=Failed`, `errorMessage = "ClientInputError : LineEnding is invalid on user data. Current LineEnding setting is CRLF"`. The CSV had been written with LF newlines (PowerShell `` `n ``) while the Bulk job was created expecting CRLF.
+- **Why**: Bulk API is **asynchronous and batch-based** — the CLI spinner finishing ≠ records committed. The real outcome (processed/failed counts, per-row errors) is in the **JobInfo** + the failed-results file, not in the terminal. Separately, Bulk API validates the declared `lineEnding`; a Windows-created file with LF mismatches the default CRLF and the whole job fails before any row is processed.
+- **Fix**: rewrote the CSV with CRLF (`Set-Content` with an array of lines = CRLF, `-Encoding ascii`); re-ran → `state=JobComplete`, `numberRecordsProcessed=5`, `numberRecordsFailed=0`; all 5 stock values updated.
+- **Rule**: After any Bulk job, **always read the JobInfo** (`state`, `numberRecordsProcessed`, `numberRecordsFailed`) and the failed-results file — never assume success from the CLI returning. On Windows, write CSVs with CRLF (or set `lineEnding=LF` on the job to match). This is "capture, don't infer" applied to async integrations — exactly how real bank Bulk loads surface errors.
+
 ### LL-030 — Apply the standard-first ladder to ALL options, or you'll "justify custom" against an incomplete list
 - **What**: ADR-0010 first compared Flow-callout vs Apex vs Hybrid and concluded "Apex — because resilience (retry/dead-letter) isn't available declaratively." That was **wrong**: it never evaluated **Outbound Messages**, which provide retry + exponential backoff (24h, extensible 7d) + a delivery-failure (dead-letter) report **natively, zero code**. We were about to hand-build in Apex a mechanism Salesforce ships standard.
 - **Why it happened**: the ladder (standard→declarative→custom) was applied to a *subset* of options. "Declarative" was equated with "Flow," skipping the older standard feature (Outbound Messages) that fit best.
